@@ -1,0 +1,38 @@
+#include_once <tools.afl>
+
+MILYAR = 1000000000;
+
+_SECTION_BEGIN("Foreign MACD");
+
+	SetBackgroundText("Foreign MACD");
+	
+	FF_DayNetValue = odbcGetArraySQL(" SELECT DAY_NET_VALUE, dtime " + 
+								     " FROM v_adj_intraday_foreign " +
+								     " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+
+	Dn = DateNum();
+	Last_DN = Dn[BarCount-1];
+								     
+	Balance = Cum(FF_DayNetValue);
+	Balance = IIf(Dn == Last_DN, Balance, 0);
+
+	EMA_L = EMA(Balance, 26);
+	EMA_S = EMA(balance, 12);
+	
+	F_MACD = EMA_S - EMA_L;
+	Sig = EMA(F_MACD, 9);
+	
+	Plot(F_MACD, "MACD", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleLine | styleThick);
+	Plot(Sig, "Signal", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleDashed);
+	
+	Hist = F_MACD - Sig;
+	AHist = abs(Hist);
+	Plot(AHist, "Hist", IIf(Hist >= 0, colorLightBlue, colorLightOrange), styleHistogram | styleOwnScale, 0, HighestVisibleValue(AHist) * 2, 0, 0, 4);
+	
+	Buy = Cross(F_MACD, Sig);
+	Sell = Cross(Sig, F_MACD);
+	PlotShapes( Buy * shapeUpArrow, colorGreen, 0, Sig); 
+	PlotShapes( Sell * shapeDownArrow, colorRed, 0, F_MACD);
+	
+_SECTION_END();
+

@@ -1,0 +1,54 @@
+#include_once <Tools.afl>
+
+odbcOpenDatabase( "ODBC;DSN=bandarmologi");
+
+MILYAR = 1000000000.0;
+
+sql = " SELECT int_net_value, dtime " + 
+	  " FROM v_adj_intraday_foreign " +
+	  " WHERE ticker='" + Name() + "' ORDER BY dtime ASC";
+							     
+FF_IntNetValue = odbcGetArraySQL(sql) / MILYAR;
+
+_SECTION_BEGIN("FNet (B)");
+	SetBackgroundText("Foreign Net");
+	GraphLabelDecimals = 1;
+	GraphZOrder = 1;
+
+	dynamic_color = IIf( FF_IntNetValue >= 0, colorBlueGrey, colorLightOrange ); 
+	
+	Plot( abs(FF_IntNetValue), 
+		  WriteIf(FF_IntNetValue >= 0, "Net Buy (B)", "Net Sell (B)"),
+		  dynamic_color, 
+		  styleHistogram | styleThick | styleNoTitle,
+		  Null,
+		  Null,
+		  0,
+		  0,
+		  5);
+
+	Plot( FF_IntNetValue, 
+		  WriteIf(FF_IntNetValue >= 0, "Net Buy (B)", "Net Sell (B)"),
+		  dynamic_color, 
+		  styleNoDraw | styleOwnScale);
+	
+	/*
+	Plot( 0, 
+		  "0", 
+		  colorGrey50, 
+		  styleLine | styleNoTitle,
+		  Null,
+		  Null,
+		  0,
+		  0,
+		  1);
+	
+	Min_Scale = 0.2;
+	
+	if (HighestVisibleValue(FF_IntNetValue) < Min_Scale)
+		Plot(Min_Scale, "", colorGrey40, styleNoDraw | styleNoLabel | styleNoTitle);
+	if (LowestVisibleValue(FF_IntNetValue) > -Min_Scale)
+		Plot(-Min_Scale, "", colorGrey40, styleNoDraw | styleNoLabel | styleNoTitle);
+	*/
+_SECTION_END();
+

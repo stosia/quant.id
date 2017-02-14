@@ -1,0 +1,67 @@
+#include_once <tools.afl>
+
+odbcOpenDatabase( "ODBC;DSN=bandarmologi");
+
+MILYAR = 1000000000.0;
+
+IntValue = odbcGetArraySQL(" SELECT int_value, dtime " + 
+						 	  " FROM v_adj_intraday_foreign " +
+							  " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+FF_IntBuyValue = odbcGetArraySQL(" SELECT int_buy_value, dtime " + 
+							     " FROM v_adj_intraday_foreign " +
+							     " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+FF_IntSellValue = odbcGetArraySQL(" SELECT int_sell_value, dtime " + 
+							      " FROM v_adj_intraday_foreign " +
+							      " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+FF_IntValue = Max(FF_IntBuyValue, FF_IntSellValue);
+
+Period = 2;
+
+Sum_Value = Sum(IntValue, Period);
+Sum_FFValue = Sum( Max(FF_IntBuyValue, FF_IntSellValue), Period);
+
+//CTSRatio = Sum_FFValue * 100 / Sum_Value;
+CTSRatio = IIf(IntValue, FF_IntValue * 100 / IntValue, 0);
+
+SetBackgroundText("CTS Ratio");
+GraphLabelDecimals = 1;
+GraphZOrder = 1;
+
+dynamic_color = IIf( FF_IntBuyValue >= FF_IntSellValue, colorBlueGrey, colorLightOrange ); 
+Plot( CTSRatio, 
+	  "CTS Ratio", 
+	  dynamic_color, 
+	  ParamStyle("Style", styleHistogram | styleThick),
+	  0,
+	  100,
+	  0,
+	  1,
+	  5);
+
+Plot( 100, 
+	  "100", 
+	  colorGrey50, 
+	  styleLine | styleNoLabel,
+	  0,
+	  100,
+	  0,
+	  1 );
+
+Plot( 50, 
+	  "50", 
+	  colorGrey50, 
+	  styleLine | styleNoLabel,
+	  0,
+	  100,
+	  0,
+	  1 );
+	  
+Plot( 0, 
+	  "0", 
+	  colorLightGrey, 
+	  styleLine | styleNoLabel,
+	  0,
+	  100,
+	  0,
+	  0 );
+

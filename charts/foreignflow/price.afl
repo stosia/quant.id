@@ -1,0 +1,104 @@
+#include_once <tools.afl>
+
+Open = IIf(BarIndex() > 0, Ref(Close, -1), Close);
+
+odbcOpenDatabase( "ODBC;DSN=bandarmologi");
+
+MILYAR = 1000000000.0;
+
+FF_IntValue = odbcGetArraySQL(" SELECT int_value, dtime " + 
+							   " FROM v_adj_intraday_foreign " +
+							   " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+
+
+_SECTION_BEGIN("Price");
+	SetChartOptions(0,chartShowArrows|chartShowDates);
+	_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+	Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+Dn = DateNum();
+Last_DN = Dn[BarCount-1];
+
+_SECTION_BEGIN("Value (B)");
+	Color = ParamColor("Color", colorBlueGrey );
+	
+	MaxValue = Max(HighestVisibleValue(FF_IntValue) * 2, 1);
+	
+	Plot( FF_IntValue, 
+		  _DEFAULT_NAME(), 
+		  ColorBlend( Color, GetChartBkColor(), 0.5  ),
+		  ParamStyle("Style", styleHistogram | styleThick | styleOwnScale),
+		  0,
+		  MaxValue,
+		  0,
+		  0,
+		  5 );
+	
+	F_IntNetValue = odbcGetArraySQL(" SELECT INT_NET_VALUE, dtime " + 
+								   " FROM v_adj_intraday_foreign " +
+								   " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+
+	dynamic_color = IIf( F_IntNetValue >= 0, colorBlue, colorOrange); 
+	Plot( abs(F_IntNetValue), 
+		  "FNet (B)", 
+		  dynamic_color, 
+		  styleHistogram | styleThick | styleOwnScale,
+		  Null,
+		  MaxValue,
+		  0,
+		  1,
+		  3);
+	
+_SECTION_END();
+
+/*
+_SECTION_BEGIN("Daily Avg");
+	AvgPeriodDays = Param("Avg Period Days", 2, 1, 600);
+	
+	FF_IntBuyValue = odbcGetArraySQL(" SELECT INT_BUY_VALUE, dtime " + 
+								     " FROM v_adj_intraday_foreign " +
+							         " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+	FF_IntBuyShares = FF_IntBuyValue / Close;
+
+	FF_DayBuyValue = SumDays(FF_IntBuyValue, AvgPeriodDays);
+	FF_CumBuyShares = SumDays(FF_IntBuyShares, AvgPeriodDays);
+	
+	FF_BuyAvg = IIf(FF_CumBuyShares, FF_DayBuyValue / FF_CumBuyShares, Null);
+	
+	Plot( FF_BuyAvg, "BuyAvg(" + NumToStr(AvgPeriodDays,1.0) + ")", colorSeaGreen, styleDashed | styleThick | styleDots, Null, Null, Null, 2); 
+
+	
+	FF_IntSellValue = odbcGetArraySQL(" SELECT INT_SELL_VALUE, dtime " + 
+								      " FROM v_adj_intraday_foreign " +
+							          " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+	FF_IntSellShares = FF_IntSellValue / Close;
+
+	FF_DaySellValue = SumDays(FF_IntSellValue, AvgPeriodDays);
+	FF_CumSellShares = SumDays(FF_IntSellShares, AvgPeriodDays);
+	FF_SellAvg = IIf(FF_CumSellShares, FF_DaySellValue / FF_CumSellShares, Null);
+	Plot( FF_SellAvg, 
+		  "SellAvg(" + NumToStr(AvgPeriodDays,1.0) + ")", 
+		  colorLightOrange, 
+		  styleDashed | styleThick, 
+		  Null, Null, Null, 2); 
+	
+_SECTION_NAME();
+*/
+
+_SECTION_BEGIN("Foreign Balance (B)");
+	BalancePeriodDays = Param("Balance Period Days", 2, 1, 600);
+	
+	IntNetValue = odbcGetArraySQL(" SELECT INT_NET_VALUE, dtime " + 
+								  " FROM v_adj_intraday_foreign " +
+								  " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+
+	Plot( SumDays(IntNetValue, BalancePeriodDays), 
+		  "Balance(" + NumToStr(BalancePeriodDays, 1.0) + ")(B)", 
+		  ParamColor( "Color", colorRed ), 
+		  styleLine | styleOwnScale | styleThick, 
+		  Null, Null, Null, 2); 
+_SECTION_END();
+
+
+SetBackgroundText(Name() + "-" + BalancePeriodDays);

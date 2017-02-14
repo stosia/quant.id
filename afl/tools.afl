@@ -1,0 +1,147 @@
+function SetBackgroundText( txt )
+{
+	GfxSetOverlayMode(1);
+	GfxSelectFont("Tahoma", Status("pxheight")/3 );
+	GfxSetTextAlign( 6 );// center alignment
+	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
+	GfxSetBkMode(1); // transparent
+	GfxTextOut( txt, Status("pxwidth")/2, Status("pxheight")/50 );
+	//GfxTextOut( txt, Status("pxwidth")/2, 10 );
+}
+
+function IndicatorRecommend( txt, goodness )
+{
+	if (goodness >= 2) {
+		color = colorWhite;
+		bkColor = colorBrightGreen;
+	} else if (goodness >= 1) {
+		color = colorWhite;
+		bkColor = colorGreen;
+	} else if (goodness == 0) {
+		color = colorWhite;
+		bkColor = colorLightGrey;
+	} else if (goodness == -1) {
+		color = colorWhite;
+		bkColor = colorLightOrange;
+	} else {
+		color = colorWhite;
+		bkColor = colorRed;
+	}
+	
+	GfxSetOverlayMode(1);
+	GfxSelectFont("Lucida Console", 10, 800 );
+	GfxSetTextAlign( 2  );
+	GfxSetTextColor( color );
+	GfxSetBkColor( bkColor );
+	GfxSetBkMode( 2 );
+	GfxTextOut( txt, Status("pxwidth")-62, 0 );
+}
+
+function DisplayWatchlists()
+{
+	_N(txt = "");
+	_N(txt += WriteIf(InWatchListName("Universe"), "U", "_"));
+	_N(txt += WriteIf(InWatchListName("Foreign Flow Action"), "A", "_"));
+	_N(txt += WriteIf(InWatchListName("Foreign Flow Starting"), "S", "_"));
+	_N(txt += WriteIf(InWatchListName("Portfolio Hani") || InWatchListName("Portfolio Benny"), "P", "_"));
+	
+	GfxSetOverlayMode(1);
+	GfxSelectFont("Lucida Console", 10, 800 );
+	GfxSetTextAlign( 2  );
+	GfxSetTextColor( colorWhite );
+	GfxSetBkColor( ColorRGB( 200, 200, 200 ) );
+	GfxSetBkMode( 2 );
+	//GfxTextOut( txt, Status("pxwidth")-65, Status("pxheight")-30 );
+	GfxTextOut( txt, Status("pxwidth")-110, 0 );
+}
+
+function GetCurrentDate()
+{
+	_N(Year_str = NumToStr(Now(8), 4.0, False));
+	_N(Mon_str = NumToStr(Now(7), 1.0, False));
+	if (StrLen(Mon_str) < 2)
+		_N(Mon_str = "0" + Mon_str);
+	_N(Day_str = NumToStr(Now(6), 1.0, False));
+	if (StrLen(Day_str) < 2)
+		_N(Day_str = "0" + Day_str);
+	
+	return Year_str + "-" + Mon_str + "-" + Day_str;
+}
+
+function SumDays(array, days)
+{
+	//dn = DateNum();
+	dn = DaysSince1900();
+	
+	for (i=0; i<BarCount; ++i) {
+		result[i] = array[i];
+		bars[i] = 1;
+
+		days_found = 1;
+		last_day = dn[i];
+		
+		for (j=i-1; j >= 0; j--) {
+			if (dn[j] != last_day) {
+				days_found++;
+				last_day = dn[j];
+			}
+			
+			if (days_found > days)
+				break;
+				
+			result[i] += array[j];
+			bars[i] += 1;
+		}
+	}
+	
+	//return bars;
+	return result;
+}
+
+function SumDays0(array, days)
+{
+	//dn = DateNum();
+	dn = DaysSince1900();
+	last_dn = -1;
+	cur_sum = 0;
+	bar_cnt = 0;
+	days_found = 1;
+	
+	for (i=0; i<BarCount; ++i) {
+		if (dn[i] != last_dn) {
+			days_found++;
+			last_dn = dn[i];
+			if (days_found > days) {
+				cur_sum = 0;
+				bar_cnt = 0;
+			}
+		}
+		
+		bar_cnt++;
+		bars[i] = bar_cnt;
+		cur_sum += array[i];
+		result[i] = cur_sum;
+		
+	}
+	
+	return bars;
+	//return result;
+}
+
+function LastDayValue(array)
+{
+	dn = DateNum();
+	
+	cur_dn = -1;
+	ladst_day_value = -1;
+	
+	for (i = BarCount-1; i >= 0; i--) {
+		if (dn[i] != cur_dn) {
+			cur_dn = dn[i];
+			ladst_day_value = array[i];
+		}
+		result[i] = ladst_day_value;
+	}
+	
+	return result;
+}

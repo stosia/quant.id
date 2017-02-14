@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+	<Sheet>
+		<Name>Intraday</Name>
+		<Pane>
+			<ChartID>1166</ChartID>
+			<PercentHeight>50</PercentHeight>
+			<Formula>#include_once &lt;..\\..\\quant.id\\afl\\tools.afl&gt;\r\n\r\nOpen = IIf(BarIndex() &gt; 0, Ref(Close, -1), Close);\r\n\r\nodbcOpenDatabase( "ODBC;DSN=bandarmologi");\r\n\r\nMILYAR = 1000000000.0;\r\n\r\nFF_IntValue = odbcGetArraySQL(" SELECT int_value, dtime " + \r\n\t\t\t\t\t\t\t   " FROM v_adj_intraday_foreign " +\r\n\t\t\t\t\t\t\t   " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;\r\n\r\n\r\n_SECTION_BEGIN("Price");\r\n\tSetChartOptions(0,chartShowArrows|chartShowDates);\r\n\t_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));\r\n\tPlot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); \r\n_SECTION_END();\r\n\r\nDn = DateNum();\r\nLast_DN = Dn[BarCount-1];\r\n\r\n_SECTION_BEGIN("Value (B)");\r\n\tColor = ParamColor("Color", colorBlueGrey );\r\n\t\r\n\tMaxValue = Max(HighestVisibleValue(FF_IntValue) * 2, 1);\r\n\t\r\n\tPlot( FF_IntValue, \r\n\t\t  _DEFAULT_NAME(), \r\n\t\t  ColorBlend( Color, GetChartBkColor(), 0.5  ),\r\n\t\t  ParamStyle("Style", styleHistogram | styleThick | styleOwnScale),\r\n\t\t  0,\r\n\t\t  MaxValue,\r\n\t\t  0,\r\n\t\t  0,\r\n\t\t  5 );\r\n\t\r\n\tF_IntNetValue = odbcGetArraySQL(" SELECT INT_NET_VALUE, dtime " + \r\n\t\t\t\t\t\t\t\t   " FROM v_adj_intraday_foreign " +\r\n\t\t\t\t\t\t\t\t   " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;\r\n\r\n\tdynamic_color = IIf( F_IntNetValue &gt;= 0, colorBlue, colorOrange); \r\n\tPlot( abs(F_IntNetValue), \r\n\t\t  "FNet (B)", \r\n\t\t  dynamic_color, \r\n\t\t  styleHistogram | styleThick | styleOwnScale,\r\n\t\t  Null,\r\n\t\t  MaxValue,\r\n\t\t  0,\r\n\t\t  1,\r\n\t\t  3);\r\n\t\r\n_SECTION_END();\r\n\r\n/*\r\n_SECTION_BEGIN("Daily Avg");\r\n\tAvgPeriodDays = Param("Avg Period Days", 2, 1, 600);\r\n\t\r\n\tFF_IntBuyValue = odbcGetArraySQL(" SELECT INT_BUY_VALUE, dtime " + \r\n\t\t\t\t\t\t\t\t     " FROM v_adj_intraday_foreign " +\r\n\t\t\t\t\t\t\t         " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;\r\n\tFF_IntBuyShares = FF_IntBuyValue / Close;\r\n\r\n\tFF_DayBuyValue = SumDays(FF_IntBuyValue, AvgPeriodDays);\r\n\tFF_CumBuyShares = SumDays(FF_IntBuyShares, AvgPeriodDays);\r\n\t\r\n\tFF_BuyAvg = IIf(FF_CumBuyShares, FF_DayBuyValue / FF_CumBuyShares, Null);\r\n\t\r\n\tPlot( FF_BuyAvg, "BuyAvg(" + NumToStr(AvgPeriodDays,1.0) + ")", colorSeaGreen, styleDashed | styleThick | styleDots, Null, Null, Null, 2); \r\n\r\n\t\r\n\tFF_IntSellValue = odbcGetArraySQL(" SELECT INT_SELL_VALUE, dtime " + \r\n\t\t\t\t\t\t\t\t      " FROM v_adj_intraday_foreign " +\r\n\t\t\t\t\t\t\t          " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;\r\n\tFF_IntSellShares = FF_IntSellValue / Close;\r\n\r\n\tFF_DaySellValue = SumDays(FF_IntSellValue, AvgPeriodDays);\r\n\tFF_CumSellShares = SumDays(FF_IntSellShares, AvgPeriodDays);\r\n\tFF_SellAvg = IIf(FF_CumSellShares, FF_DaySellValue / FF_CumSellShares, Null);\r\n\tPlot( FF_SellAvg, \r\n\t\t  "SellAvg(" + NumToStr(AvgPeriodDays,1.0) + ")", \r\n\t\t  colorLightOrange, \r\n\t\t  styleDashed | styleThick, \r\n\t\t  Null, Null, Null, 2); \r\n\t\r\n_SECTION_NAME();\r\n*/\r\n\r\n_SECTION_BEGIN("Foreign Balance (B)");\r\n\tBalancePeriodDays = Param("Balance Period Days", 2, 1, 600);\r\n\t\r\n\tIntNetValue = odbcGetArraySQL(" SELECT INT_NET_VALUE, dtime " + \r\n\t\t\t\t\t\t\t\t  " FROM v_adj_intraday_foreign " +\r\n\t\t\t\t\t\t\t\t  " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;\r\n\r\n\tPlot( SumDays(IntNetValue, BalancePeriodDays), \r\n\t\t  "Balance(" + NumToStr(BalancePeriodDays, 1.0) + ")(B)", \r\n\t\t  ParamColor( "Color", colorRed ), \r\n\t\t  styleLine | styleOwnScale | styleThick, \r\n\t\t  Null, Null, Null, 2); \r\n_SECTION_END();\r\n\r\n\r\nSetBackgroundText(Name() + "-" + BalancePeriodDays);\r\n</Formula>
+			<FilePath>quant.id\\charts\\foreignflow\\price.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1073741835</MoreFlags>
+			<Min>306.16</Min>
+			<Max>404.71</Max>
+		</Pane>
+		<Pane>
+			<ChartID>1167</ChartID>
+			<PercentHeight>16.6667</PercentHeight>
+			<Formula>#include_once &lt;..\\..\\quant.id\\afl\\tools.afl&gt;\r\n\r\nodbcOpenDatabase( "ODBC;DSN=bandarmologi");\r\n\r\nMILYAR = 1000000000.0;\r\n\r\nIntValue = odbcGetArraySQL(" SELECT int_value, dtime " + \r\n\t\t\t\t\t\t \t  " FROM v_adj_intraday_foreign " +\r\n\t\t\t\t\t\t\t  " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");\r\nFF_IntBuyValue = odbcGetArraySQL(" SELECT int_buy_value, dtime " + \r\n\t\t\t\t\t\t\t     " FROM v_adj_intraday_foreign " +\r\n\t\t\t\t\t\t\t     " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");\r\nFF_IntSellValue = odbcGetArraySQL(" SELECT int_sell_value, dtime " + \r\n\t\t\t\t\t\t\t      " FROM v_adj_intraday_foreign " +\r\n\t\t\t\t\t\t\t      " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");\r\nFF_IntValue = Max(FF_IntBuyValue, FF_IntSellValue);\r\n\r\nPeriod = 2;\r\n\r\nSum_Value = Sum(IntValue, Period);\r\nSum_FFValue = Sum( Max(FF_IntBuyValue, FF_IntSellValue), Period);\r\n\r\n//CTSRatio = Sum_FFValue * 100 / Sum_Value;\r\nCTSRatio = IIf(IntValue, FF_IntValue * 100 / IntValue, 0);\r\n\r\nSetBackgroundText("CTS Ratio");\r\nGraphLabelDecimals = 1;\r\nGraphZOrder = 1;\r\n\r\ndynamic_color = IIf( FF_IntBuyValue &gt;= FF_IntSellValue, colorBlueGrey, colorLightOrange ); \r\nPlot( CTSRatio, \r\n\t  "CTS Ratio", \r\n\t  dynamic_color, \r\n\t  ParamStyle("Style", styleHistogram | styleThick),\r\n\t  0,\r\n\t  100,\r\n\t  0,\r\n\t  1,\r\n\t  5);\r\n\r\nPlot( 100, \r\n\t  "100", \r\n\t  colorGrey50, \r\n\t  styleLine | styleNoLabel,\r\n\t  0,\r\n\t  100,\r\n\t  0,\r\n\t  1 );\r\n\r\nPlot( 50, \r\n\t  "50", \r\n\t  colorGrey50, \r\n\t  styleLine | styleNoLabel,\r\n\t  0,\r\n\t  100,\r\n\t  0,\r\n\t  1 );\r\n\t  \r\nPlot( 0, \r\n\t  "0", \r\n\t  colorLightGrey, \r\n\t  styleLine | styleNoLabel,\r\n\t  0,\r\n\t  100,\r\n\t  0,\r\n\t  0 );\r\n\r\n</Formula>
+			<FilePath>quant.id\\charts\\foreignflow\\ctsratio.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1342177281</MoreFlags>
+			<Min>-2</Min>
+			<Max>105.12</Max>
+		</Pane>
+		<Pane>
+			<ChartID>1168</ChartID>
+			<PercentHeight>16.6667</PercentHeight>
+			<Formula>#include_once &lt;..\\..\\quant.id\\afl\\tools.afl&gt;\r\n\r\nMILYAR = 1000000000;\r\n\r\n_SECTION_BEGIN("Foreign MACD");\r\n\r\n\tSetBackgroundText("Foreign MACD");\r\n\t\r\n\tFF_DayNetValue = odbcGetArraySQL(" SELECT DAY_NET_VALUE, dtime " + \r\n\t\t\t\t\t\t\t\t     " FROM v_adj_intraday_foreign " +\r\n\t\t\t\t\t\t\t\t     " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;\r\n\r\n\tDn = DateNum();\r\n\tLast_DN = Dn[BarCount-1];\r\n\t\t\t\t\t\t\t\t     \r\n\tBalance = Cum(FF_DayNetValue);\r\n\tBalance = IIf(Dn == Last_DN, Balance, 0);\r\n\r\n\tEMA_L = EMA(Balance, 26);\r\n\tEMA_S = EMA(balance, 12);\r\n\t\r\n\tF_MACD = EMA_S - EMA_L;\r\n\tSig = EMA(F_MACD, 9);\r\n\t\r\n\tPlot(F_MACD, "MACD", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleLine | styleThick);\r\n\tPlot(Sig, "Signal", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleDashed);\r\n\t\r\n\tHist = F_MACD - Sig;\r\n\tAHist = abs(Hist);\r\n\tPlot(AHist, "Hist", IIf(Hist &gt;= 0, colorLightBlue, colorLightOrange), styleHistogram | styleOwnScale, 0, HighestVisibleValue(AHist) * 2, 0, 0, 4);\r\n\t\r\n\tBuy = Cross(F_MACD, Sig);\r\n\tSell = Cross(Sig, F_MACD);\r\n\tPlotShapes( Buy * shapeUpArrow, colorGreen, 0, Sig); \r\n\tPlotShapes( Sell * shapeDownArrow, colorRed, 0, F_MACD);\r\n\t\r\n_SECTION_END();\r\n\r\n</Formula>
+			<FilePath>quant.id\\charts\\foreignflow\\macd.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1342177281</MoreFlags>
+			<Min>-1.39662</Min>
+			<Max>73.4064</Max>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 2</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 3</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 4</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 5</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 6</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 7</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 8</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Includes>
+		<File>
+			<Path>_once &lt;..\\..\\quant.id\\afl\\tools.afl&gt;</Path>
+			<Formula>
+			</Formula>
+		</File>
+		<File>
+			<Path>_once &lt;..\\..\\quant.id\\afl\\tools.afl&gt;</Path>
+			<Formula>
+			</Formula>
+		</File>
+		<File>
+			<Path>_once &lt;..\\..\\quant.id\\afl\\tools.afl&gt;</Path>
+			<Formula>
+			</Formula>
+		</File>
+	</Includes>
+</Window>
