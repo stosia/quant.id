@@ -45,8 +45,9 @@ programmer/software developer yang tahu. Kalau Anda sudah tahu, silakan
 _clone_ repository ini ke direktori AmiBroker, misalnya:
 
 ```
-C:\> cd "Program Files\AmiBroker"
-C:\Program Files\AmiBroker> git clone https://github.com/bennylp/quant.id.git 
+cd "Program Files\AmiBroker"
+
+git clone https://github.com/bennylp/quant.id.git 
 ```
 
 **Cara 2: download ZIP** 
@@ -72,10 +73,12 @@ Langkah-langkah detil untuk _download_ dan _extract_ adalah sbb:
 
 ## Opsional: Menampilkan quant.id Dalam Daftar Charts AmiBroker
 
-AmiBroker akan menampilkan isi direktori `Formulas` dalam tab pane _Charts_.
-Untuk mudahkan pengeditan atau pemakaian _quant.id_, Anda bisa menambahkan direktori
-`quant.id` dalam daftar _Charts_ AmiBroker dengan cara membuat _symbolic link_
-ke direktori `quant.id` dalam direktori `Formulas` sebagai berikut.
+Untuk mudahkan pengeditan atau pemakaian AFL dari _quant.id_, Anda bisa menambahkan 
+`quant.id` dalam tab pane _Charts_ AmiBroker, dengan cara membuat _symbolic link_
+ke direktori `quant.id` dalam direktori `C:\Program Files\AmiBroker\Formulas`.
+
+Kalau Anda skip langkah ini juga tidak apa-apa, karena Anda masih bisa mengedit AFL
+dengan cara meng-edit chart.
 
 Anda harus melakukan ini dengan *Command Prompt* yang dibuka sebagai *Administrator*.
 Cari icon *Command Prompt* dari _Start Menu_, lalu klik kanan, pilih *Run as Administrator*.
@@ -86,4 +89,5 @@ cd "\Program Files\AmiBroker\Formulas"
 
 mklink /D quant.id ..\quant.id
 ```
+
 
