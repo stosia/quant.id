@@ -1,6 +1,6 @@
 # Selamat Datang di Repository Quant.id
 
-## Misi
+# Misi
 
 Ini merupakan proyek non-profit yang bertujuan untuk saling sharing
 strategi antar kita sesama ritel untuk meningkatkan pengetahuan,
@@ -21,9 +21,9 @@ diharapkan tujuan proyek ini untuk meningkatkan pengetahuan, kemampuan,
 dan cuan kita bersama bisa tercapai.
 
 
-## Langkah-langkah Penyetelan
+# Langkah-langkah Penyetelan
 
-### Download Repository
+## Download Repository
 
 Langkah pertama adalah men-download isi repository ini ke direktori
 AmiBroker di komputer Anda. Direktori AmiBroker Anda bisa di 
@@ -70,10 +70,20 @@ Langkah-langkah detil untuk _download_ dan _extract_ adalah sbb:
    dengan langkah2 di atas.
 
 
-### Penyetelan Lokasi Amibroker
+## Opsional: Menampilkan quant.id Dalam Daftar Charts AmiBroker
 
-Lokasi **quant.id** perlu ditambahkan ke Amibroker agar bisa dikenali. Caranya:
+AmiBroker akan menampilkan isi direktori `Formulas` dalam tab pane _Charts_.
+Untuk mudahkan pengeditan atau pemakaian _quant.id_, Anda bisa menambahkan direktori
+`quant.id` dalam daftar _Charts_ AmiBroker dengan cara membuat _symbolic link_
+ke direktori `quant.id` dalam direktori `Formulas` sebagai berikut.
 
-1. Buka Amibroker
-1. Pilih menu **Tools** --> **Preferences**
-1. 
+Anda harus melakukan ini dengan *Command Prompt* yang dibuka sebagai *Administrator*.
+Cari icon *Command Prompt* dari _Start Menu_, lalu klik kanan, pilih *Run as Administrator*.
+Lalu:
+
+```
+cd "\Program Files\AmiBroker\Formulas"
+
+mklink /D quant.id ..\quant.id
+```
+
