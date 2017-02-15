@@ -19,7 +19,7 @@
 #include_once <..\..\quant.id\AFL\Common.afl>
 #include_once <..\..\quant.id\AFL\ForeignFlow.afl>
 
-_SECTION_BEGIN("Foreign Net/Vol");
+_SECTION_BEGIN("Foreign Net");
 	SetBackgroundText(_SECTION_NAME());
 
 	B = ffGetIntervalBuyValue();

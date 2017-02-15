@@ -9,8 +9,8 @@
 			<FilePath>quant.id\\Charts\\ForeignFlow\\internal\\ForeignFlow_Price.afl</FilePath>
 			<Flags>256</Flags>
 			<MoreFlags>1073741835</MoreFlags>
-			<Min>1478.97</Min>
-			<Max>2887.31</Max>
+			<Min>59650</Min>
+			<Max>78396</Max>
 		</Pane>
 		<Pane>
 			<ChartID>1184</ChartID>
@@ -19,8 +19,8 @@
 			<FilePath>quant.id\\Charts\\ForeignFlow\\internal\\ForeignFlow_NetVol.afl</FilePath>
 			<Flags>256</Flags>
 			<MoreFlags>268435457</MoreFlags>
-			<Min>-13.1769</Min>
-			<Max>692.577</Max>
+			<Min>-5.55005</Min>
+			<Max>291.71</Max>
 		</Pane>
 		<Pane>
 			<ChartID>1178</ChartID>
@@ -39,8 +39,8 @@
 			<FilePath>quant.id\\Charts\\ForeignFlow\\internal\\ForeignFlow_MACD.afl</FilePath>
 			<Flags>256</Flags>
 			<MoreFlags>1342177281</MoreFlags>
-			<Min>-49.7056</Min>
-			<Max>87.3359</Max>
+			<Min>-112.223</Min>
+			<Max>295.598</Max>
 		</Pane>
 	</Sheet>
 	<Sheet>

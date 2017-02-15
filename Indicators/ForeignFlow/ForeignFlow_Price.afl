@@ -24,14 +24,15 @@ SetBarsRequired(sbrAll);
 
 
 SetBackgroundText(Name());
-
+SetSubtitleText("Foreign Flow System");
+SetSubSubtitleText("© 2017 quant.id");
 
 //
 // Price candlesticks
 //
 _SECTION_BEGIN("Price");
 	SetChartOptions(0,chartShowArrows|chartShowDates);
-	_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
+	_N(Title = StrFormat("© 2017 quant.id -- {{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
 						  O, H, L, C, SelectedValue( ROC( C, 1 )) ));
 	Plot( C, "Close", colorDefault, styleNoTitle | GetPriceStyle() ); 
 _SECTION_END();
@@ -133,7 +134,7 @@ _SECTION_END();
 // Foreign average price
 //
 _SECTION_BEGIN("Foreign Average");
-	ffAvg = ffGetAverageFromInterval(ffIntervalValue);
+	ffAvg = ffGetAverageFromIntervalNet(ffIntervalValue);
 	Plot( ffAvg, "Foreign Avg", colorGreen, styleDashed | styleThick | styleNoLabel); 
 _SECTION_END();
 
@@ -142,11 +143,20 @@ _SECTION_END();
 //
 _SECTION_BEGIN("Foreign MA");
 	ffMaEnabled = ParamToggle("Enable Foreign MA", "No|Yes", 1);
-	fMA1 = Param("Foreign MA Period 1", 5, 1, 100);
-	fMA2 = Param("Foreign MA Period 2", 20, 1, 100);
+	ffMAPeriod1 = Param("Foreign MA Period 1", 5, 1, 100);
+	ffMAPeriod2 = Param("Foreign MA Period 2", 20, 1, 100);
+	
+	ffMA1 = MA(ffBalance, ffMAPeriod1);
+	ffMA2 = MA(ffBalance, ffMAPeriod2);
 	
 	if (ffMaEnabled) {
-		Plot( MA(ffBalance, fMA1), "fMA" + fMA1, colorOrange, styleLine | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
-		Plot( MA(ffBalance, fMA2), "fMA" + fMA2, colorOrange, styleDashed | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
+		Plot( ffMA1, "fMA" + ffMAPeriod1, colorOrange, styleLine | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
+		Plot( ffMA2, "fMA" + ffMAPeriod2, colorOrange, styleDashed | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
 	}
 _SECTION_END();
+
+if (ffMaEnabled) {
+	Buy = Cross( ffMA1, ffMA2) && (ffBalance >= ffMA1) && (C < ffAvg) && (ffIntervalValue > 1);
+	//Plot(Buy, "Buy", colorBlack, styleNoLine | styleNoLabel | styleOwnScale);
+	PlotShapes( Buy * shapeUpArrow, colorGreen, 0, Min(L, O)); 
+}

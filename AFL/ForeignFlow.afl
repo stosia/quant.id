@@ -121,7 +121,7 @@ function ffGetBalance()
 //
 // Get average price value of foreign ownership
 //
-function ffGetAverageFromInterval(ffIntVal)
+function ffGetAverageFromIntervalNet(ffIntVal)
 {
 	ffIntVal = ffIntVal * MILYAR;
 	typ = typicalPrice();
@@ -191,5 +191,5 @@ function ffGetAverageFromInterval(ffIntVal)
 function ffGetAverage()
 {
 	ffIntVal = ffGetIntervalValue();
-	return ffGetAverageFromInterval(ffIntVal);
+	return ffGetAverageFromIntervalNet(ffIntVal);
 }
