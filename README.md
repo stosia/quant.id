@@ -96,6 +96,7 @@ mklink /D quant.id ..\quant.id
 **Q: Kenapa isi formula chart cuma meng-_include_ formula lain?**
 
 A: Biar nggak pusing dengan file-file "\_imported" yang terjadi kalau kita meng-_edit_
-   chartnya. Dan agar kalau ada perubahan di suatu indicator, maka perubahan itu
-   langsung terupdate di chart-chart lain yang memakai indicator yang sama. 
+   chartnya, atau kehilangan perubahan kalau lupa save chart. Dan agar kalau ada perubahan
+   di suatu indicator, maka perubahan itu langsung terupdate di chart-chart lain yang 
+   memakai indicator yang sama. 
 
