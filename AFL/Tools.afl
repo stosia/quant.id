@@ -171,3 +171,11 @@ function LastDayValue(array)
 	
 	return result;
 }
+
+//
+// Return the typical price (i.e. (H + L + C) / 3)
+//
+function typicalPrice()
+{
+	return (H + L + C) / 3;
+}

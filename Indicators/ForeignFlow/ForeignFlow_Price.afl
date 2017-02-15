@@ -15,6 +15,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  */
+ 
+SetBarsRequired(sbrAll);
+
 #include_once <..\..\quant.id\AFL\Tools.afl>
 #include_once <..\..\quant.id\AFL\Common.afl>
 #include_once <..\..\quant.id\AFL\ForeignFlow.afl>
@@ -64,7 +67,7 @@ _SECTION_BEGIN("Foreign Value (B)");
 	Plot( abs(ffIntervalValue), 
 		  WriteIf(ffIntervalValue >= 0, "Net Buy (B)", "Net Sell (B)"), 
 		  IIf( ffIntervalValue >= 0, colorBlue, colorOrange),
-		  styleHistogram | styleThick | styleOwnScale,
+		  styleHistogram | styleThick | styleOwnScale | styleNoLabel,
 		  Null,
 		  maxIntervalValue,
 		  0,
@@ -113,9 +116,37 @@ _SECTION_NAME();
 _SECTION_BEGIN("Foreign Balance (B)");
 	ffBalance = ffGetBalanceFromInterval(ffIntervalValue);
 	
+	ffBalanceMin = LowestVisibleValue(ffBalance);
+	ffBalanceMax = HighestVisibleValue(ffBalance);
+	
 	Plot( ffBalance, 
 		  "Balance(B)", 
 		  colorRed, 
 		  styleLine | styleOwnScale | styleThick, 
-		  Null, Null, Null, 2); 
+		  ffBalanceMin, 
+		  ffBalanceMax, 
+		  Null, 
+		  2); 
+_SECTION_END();
+
+//
+// Foreign average price
+//
+_SECTION_BEGIN("Foreign Average");
+	ffAvg = ffGetAverageFromInterval(ffIntervalValue);
+	Plot( ffAvg, "Foreign Avg", colorGreen, styleDashed | styleThick | styleNoLabel); 
+_SECTION_END();
+
+//
+// Foreign MA
+//
+_SECTION_BEGIN("Foreign MA");
+	ffMaEnabled = ParamToggle("Enable Foreign MA", "No|Yes", 1);
+	fMA1 = Param("Foreign MA Period 1", 5, 1, 100);
+	fMA2 = Param("Foreign MA Period 2", 20, 1, 100);
+	
+	if (ffMaEnabled) {
+		Plot( MA(ffBalance, fMA1), "fMA" + fMA1, colorOrange, styleLine | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
+		Plot( MA(ffBalance, fMA2), "fMA" + fMA2, colorOrange, styleDashed | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
+	}
 _SECTION_END();

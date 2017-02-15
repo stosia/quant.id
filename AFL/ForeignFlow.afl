@@ -33,7 +33,7 @@ function ffGetIntervalValue()
 		ffIntVal = odbcGetArraySQL( " SELECT INT_NET_VALUE, dtime " + 
 									 " FROM v_adj_intraday_foreign " +
 									 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
-	} else if (Interval() >= inDaily) {
+	} else {
 		if (Interval() > inDaily) {
 			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
 		}
@@ -57,7 +57,7 @@ function ffGetIntervalBuyValue()
 		ffIntBuyValue = odbcGetArraySQL( " SELECT int_buy_value, dtime " + 
 										 " FROM v_adj_intraday_foreign " +
 										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
-	} else if (Interval() >= inDaily) {
+	} else {
 		if (Interval() > inDaily) {
 			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
 		}
@@ -81,7 +81,7 @@ function ffGetIntervalSellValue()
 		ffIntBuyValue = odbcGetArraySQL( " SELECT int_sell_value, dtime " + 
 										 " FROM v_adj_intraday_foreign " +
 										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
-	} else if (Interval() >= inDaily) {
+	} else {
 		if (Interval() > inDaily) {
 			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
 		}
@@ -116,4 +116,80 @@ function ffGetBalance()
 {
 	ffIntervalValue = ffGetIntervalValue();
 	return ffGetBalanceFromInterval(ffIntervalValue);
+}
+
+//
+// Get average price value of foreign ownership
+//
+function ffGetAverageFromInterval(ffIntVal)
+{
+	ffIntVal = ffIntVal * MILYAR;
+	typ = typicalPrice();
+
+	dn = DateNum();
+	prev_dn = -1;
+	isIntraday = Interval() < inDaily;
+	
+	if (Interval() > inDaily) {
+		printf("** WARNING **\nInterval greater than daily is not supported!\n");
+	}
+
+	i = 0;
+	if (ffIntVal[i] >= 0) {
+		ffBalance[i] = ffIntVal[i];
+		ffShares[i] = ffIntVal[i] / typ[i];
+		ffAvg[i] = typ[i];
+	} else {
+		ffBalance[i] = 0;
+		ffShares[i] = 0;
+		ffAvg[i] = Null;
+	}
+
+	for (i=1; i<BarCount; ++i) {
+		if (isIntraday && dn[i] != prev_dn) {
+			// Reset on new day
+			if (ffIntVal[i] >= 0) {
+				ffBalance[i] = ffIntVal[i];
+				ffShares[i] = ffIntVal[i] / typ[i];
+				ffAvg[i] = typ[i];
+			} else {
+				ffBalance[i] = 0;
+				ffShares[i] = 0;
+				ffAvg[i] = Null;
+			}
+			
+			prev_dn = dn[i];
+		} else {
+			ffBalance[i] = ffBalance[i-1] + ffIntVal[i];
+			ffShares[i] = ffShares[i-1] + (ffIntVal[i] / typ[i]);
+			
+			if (ffBalance[i] < 0 || ffShares[i] < 0) {
+				// All sold
+				ffBalance[i] = 0;
+				ffShares[i] = 0;
+				ffAvg[i] = Null;
+			} else if (i > 0 && ffIntVal[i] < 0) {
+				// Sell operation doesn't change avg
+				ffAvg[i] = ffAvg[i-1];
+				// Adjust balance
+				ffBalance[i] = ffShares[i] * ffAvg[i];
+			} else {
+				
+				ffAvg[i] = ffBalance[i] / ffShares[i];
+			}
+		}
+	}
+		
+	//Plot(ffIntVal, "ffIntVal", colorBlack, styleNoLine | styleOwnScale | styleNoLabel);
+	//Plot(typ, "typ", colorBlack, styleNoLine | styleOwnScale | styleNoLabel);
+	//Plot(ffBalance, "ffBalance", colorBlack, styleNoLine | styleOwnScale | styleNoLabel);
+	//Plot(ffShares, "ffShares", colorBlack, styleNoLine | styleOwnScale | styleNoLabel);
+	
+	return ffAvg;
+}
+
+function ffGetAverage()
+{
+	ffIntVal = ffGetIntervalValue();
+	return ffGetAverageFromInterval(ffIntVal);
 }
