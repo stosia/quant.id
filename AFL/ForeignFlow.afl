@@ -18,18 +18,16 @@
 #include_once <..\..\quant.id\AFL\Tools.afl>
 
 //
-// Foreign flow interval value is the foreign net buy/sell during the last
+// Foreign flow interval value is the foreign NET buy/sell for each
 // interval, where interval can be intraday or daily. Interval greater than
 // one day is not supported yet.
 //
 // Return:
-//   foreign flow net value during the interval
+//   foreign flow NET value array for each interval (in milyar Rp)
 //
 function ffGetIntervalValue()
 {
 	odbcConnectDatabase();
-
-	MILYAR = 1000000000.0;
 
 	if (Interval() < inDaily) {
 		ffIntVal = odbcGetArraySQL( " SELECT INT_NET_VALUE, dtime " + 
@@ -48,3 +46,74 @@ function ffGetIntervalValue()
 	return ffIntVal;
 }
 
+//
+// Get foreign BUY value (in milyar Rp) for each interval
+//
+function ffGetIntervalBuyValue()
+{
+	odbcConnectDatabase();
+
+	if (Interval() < inDaily) {
+		ffIntBuyValue = odbcGetArraySQL( " SELECT int_buy_value, dtime " + 
+										 " FROM v_adj_intraday_foreign " +
+										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+	} else if (Interval() >= inDaily) {
+		if (Interval() > inDaily) {
+			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
+		}
+		
+		ffIntBuyValue = odbcGetArraySQL( " SELECT day_buy_value, dtime " + 
+										 " FROM v_adj_intraday_foreign " +
+										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+	}
+
+	return ffIntBuyValue;
+}
+
+//
+// Get foreign SELL value (in milyar Rp) for each interval
+//
+function ffGetIntervalSellValue()
+{
+	odbcConnectDatabase();
+
+	if (Interval() < inDaily) {
+		ffIntBuyValue = odbcGetArraySQL( " SELECT int_sell_value, dtime " + 
+										 " FROM v_adj_intraday_foreign " +
+										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+	} else if (Interval() >= inDaily) {
+		if (Interval() > inDaily) {
+			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
+		}
+		
+		ffIntBuyValue = odbcGetArraySQL( " SELECT day_sell_value, dtime " + 
+										 " FROM v_adj_intraday_foreign " +
+										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+	}
+
+	return ffIntBuyValue;
+}
+
+//
+// Get foreign balance from the interval value. Foreign balance is the total cummulative value 
+// of foreign flow.
+//
+function ffGetBalanceFromInterval(ffIntervalValue)
+{
+	if (Interval() < inDaily) {
+		ffBalance = SumDays(ffIntervalValue, 1);
+	} else {
+		ffBalance = Cum(ffIntervalValue);
+	}
+	
+	return ffBalance;
+}
+
+//
+// Get foreign balance. Foreign balance is the total cummulative value of foreign flow.
+//
+function ffGetBalance()
+{
+	ffIntervalValue = ffGetIntervalValue();
+	return ffGetBalanceFromInterval(ffIntervalValue);
+}

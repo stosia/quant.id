@@ -20,27 +20,29 @@
 #include_once <..\..\quant.id\AFL\ForeignFlow.afl>
 
 
-SetBackgroundText(Name());
-
 _SECTION_BEGIN("Foreign MACD");
 
 	SetBackgroundText("Foreign MACD");
+
+	maPeriod1 = Param("EMA 1", 12, 1, 200, 1);
+	maPeriod2 = Param("EMA 2", 26, 1, 200, 1);
+	maPeriod3 = Param("EMA 3", 9, 1, 200, 1);
 	
-	FF_DayNetValue = odbcGetArraySQL(" SELECT DAY_NET_VALUE, dtime " + 
-								     " FROM v_adj_intraday_foreign " +
-								     " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
-
-	Dn = DateNum();
-	Last_DN = Dn[BarCount-1];
-								     
-	Balance = Cum(FF_DayNetValue);
-	Balance = IIf(Dn == Last_DN, Balance, 0);
-
-	EMA_L = EMA(Balance, 26);
-	EMA_S = EMA(balance, 12);
+	ffBalance = ffGetBalance();
+	
+	// For intraday chart, only show MACD for today
+	if (Interval() < inDaily) {
+		Dn = DateNum();
+		Last_DN = Dn[BarCount-1];
+										 
+		ffBalance = IIf(Dn == Last_DN, ffBalance, 0);
+	}
+	
+	EMA_L = EMA(ffBalance, maPeriod2);
+	EMA_S = EMA(ffBalance, maPeriod1);
 	
 	F_MACD = EMA_S - EMA_L;
-	Sig = EMA(F_MACD, 9);
+	Sig = EMA(F_MACD, maPeriod3);
 	
 	Plot(F_MACD, "MACD", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleLine | styleThick);
 	Plot(Sig, "Signal", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleDashed);

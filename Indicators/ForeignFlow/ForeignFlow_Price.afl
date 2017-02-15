@@ -30,7 +30,7 @@ _SECTION_BEGIN("Price");
 	SetChartOptions(0,chartShowArrows|chartShowDates);
 	_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
 						  O, H, L, C, SelectedValue( ROC( C, 1 )) ));
-	Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+	Plot( C, "Close", colorDefault, styleNoTitle | GetPriceStyle() ); 
 _SECTION_END();
 
 
@@ -40,14 +40,12 @@ _SECTION_END();
 _SECTION_BEGIN("Value (B)");
 	intervalValue = getIntervalValue();
 	
-	Color = ParamColor("Color", colorBlueGrey );
-	
 	maxIntervalValue = Max(HighestVisibleValue(intervalValue) * 2, 1);
 	
 	Plot( intervalValue, 
 		  _DEFAULT_NAME(), 
-		  ColorBlend( Color, GetChartBkColor(), 0.5  ),
-		  ParamStyle("Style", styleHistogram | styleThick | styleOwnScale),
+		  ColorBlend( colorBlueGrey, GetChartBkColor(), 0.5  ),
+		  styleHistogram | styleThick | styleOwnScale,
 		  0,
 		  maxIntervalValue,
 		  0,
@@ -63,10 +61,9 @@ _SECTION_END();
 _SECTION_BEGIN("Foreign Value (B)");
 	ffIntervalValue = ffGetIntervalValue();
 	
-	dynamic_color = IIf( ffIntervalValue >= 0, colorBlue, colorOrange); 
 	Plot( abs(ffIntervalValue), 
 		  WriteIf(ffIntervalValue >= 0, "Net Buy (B)", "Net Sell (B)"), 
-		  dynamic_color, 
+		  IIf( ffIntervalValue >= 0, colorBlue, colorOrange),
 		  styleHistogram | styleThick | styleOwnScale,
 		  Null,
 		  maxIntervalValue,
@@ -114,15 +111,11 @@ _SECTION_NAME();
 // Foreign accummulation (balance)
 //
 _SECTION_BEGIN("Foreign Balance (B)");
-	if (Interval() < inDaily) {
-		ffBalance = SumDays(ffIntervalValue, 1);
-	} else {
-		ffBalance = Cum(ffIntervalValue);
-	}
+	ffBalance = ffGetBalanceFromInterval(ffIntervalValue);
 	
 	Plot( ffBalance, 
 		  "Balance(B)", 
-		  ParamColor( "Color", colorRed ), 
+		  colorRed, 
 		  styleLine | styleOwnScale | styleThick, 
 		  Null, Null, Null, 2); 
 _SECTION_END();

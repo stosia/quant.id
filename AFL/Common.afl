@@ -19,8 +19,8 @@
 
 
 //
-// Interval value is the total transaction value (in Milyar Rp) in 
-// the last interval, where interval can be intraday or daily. Interval 
+// Interval value is the total transaction value (in Milyar Rp) for
+// each interval (=bar), where interval can be intraday or daily. Interval 
 // greater than one day is not supported yet.
 //
 // Returns:

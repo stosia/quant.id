@@ -1,0 +1,85 @@
+/* 
+ * Copyright (C) 2017 Benny Prijono <benny@stosia.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ */
+#include_once <..\..\quant.id\AFL\Tools.afl>
+#include_once <..\..\quant.id\AFL\Common.afl>
+#include_once <..\..\quant.id\AFL\ForeignFlow.afl>
+
+//
+// CTS Ratio adalah ratio nilai transaksi asing terhadap total nilai
+// transaksi saham tersebut. Semakin besar ratio, semakin besar dominasi 
+// asing dalam transaksi saham tersebut.
+//
+_SECTION_BEGIN("Foreign Ratio");
+	SetBackgroundText(_SECTION_NAME());
+	
+	intValue = getIntervalValue();
+	ffIntBuyValue = ffGetIntervalBuyValue();
+	ffIntSellValue = ffGetIntervalSellValue();
+
+	ffIntValue = Max(ffIntBuyValue, ffIntSellValue);
+
+	//ctsPeriod = Param("Period", 2, 1, 100, 1);
+	//Sum_Value = Sum(intValue, ctsPeriod);
+	//Sum_FFValue = Sum( Max(ffIntBuyValue, ffIntSellValue), ctsPeriod);
+
+	//CTSRatio = Sum_FFValue * 100 / Sum_Value;
+	ffRatio = IIf(intValue, ffIntValue * 100 / intValue, 0);
+
+	//GraphLabelDecimals = 0;
+	//GraphZOrder = 1;
+
+	dynamic_color = IIf( ffIntBuyValue >= ffIntSellValue, 
+						 ColorBlend( colorBlueGrey, GetChartBkColor(), 0.3), 
+						 ColorBlend( colorLightOrange, GetChartBkColor(), 0.3)); 
+	Plot( Round(ffRatio), 
+		  "Foreign Ratio (%)", 
+		  dynamic_color, 
+		  styleHistogram | styleThick,
+		  0,
+		  100,
+		  0,
+		  1,
+		  5);
+
+	Plot( 100, 
+		  "100", 
+		  colorGrey50, 
+		  styleLine | styleNoLabel,
+		  0,
+		  100,
+		  0,
+		  1 );
+
+	Plot( 50, 
+		  "50", 
+		  colorGrey50, 
+		  styleLine | styleNoLabel,
+		  0,
+		  100,
+		  0,
+		  1 );
+		  
+	Plot( 0, 
+		  "0", 
+		  colorLightGrey, 
+		  styleLine | styleNoLabel,
+		  0,
+		  100,
+		  0,
+		  0 );
+_SECTION_END();
