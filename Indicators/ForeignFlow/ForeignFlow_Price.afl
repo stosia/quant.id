@@ -1,56 +1,80 @@
-#include_once <..\..\quant.id\afl\tools.afl>
+/* 
+ * Copyright (C) 2017 Benny Prijono <benny@stosia.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ */
+#include_once <..\..\quant.id\AFL\Tools.afl>
+#include_once <..\..\quant.id\AFL\Common.afl>
+#include_once <..\..\quant.id\AFL\ForeignFlow.afl>
 
-Open = IIf(BarIndex() > 0, Ref(Close, -1), Close);
 
-odbcOpenDatabase( "ODBC;DSN=bandarmologi");
-
-MILYAR = 1000000000.0;
-
-FF_IntValue = odbcGetArraySQL(" SELECT int_value, dtime " + 
-							   " FROM v_adj_intraday_foreign " +
-							   " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+SetBackgroundText(Name());
 
 
+//
+// Price candlesticks
+//
 _SECTION_BEGIN("Price");
 	SetChartOptions(0,chartShowArrows|chartShowDates);
-	_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+	_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
+						  O, H, L, C, SelectedValue( ROC( C, 1 )) ));
 	Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
 _SECTION_END();
 
-Dn = DateNum();
-Last_DN = Dn[BarCount-1];
 
+//
+// Total transaction value
+//
 _SECTION_BEGIN("Value (B)");
+	intervalValue = getIntervalValue();
+	
 	Color = ParamColor("Color", colorBlueGrey );
 	
-	MaxValue = Max(HighestVisibleValue(FF_IntValue) * 2, 1);
+	maxIntervalValue = Max(HighestVisibleValue(intervalValue) * 2, 1);
 	
-	Plot( FF_IntValue, 
+	Plot( intervalValue, 
 		  _DEFAULT_NAME(), 
 		  ColorBlend( Color, GetChartBkColor(), 0.5  ),
 		  ParamStyle("Style", styleHistogram | styleThick | styleOwnScale),
 		  0,
-		  MaxValue,
+		  maxIntervalValue,
 		  0,
 		  0,
 		  5 );
 	
-	F_IntNetValue = odbcGetArraySQL(" SELECT INT_NET_VALUE, dtime " + 
-								   " FROM v_adj_intraday_foreign " +
-								   " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+_SECTION_END();
 
-	dynamic_color = IIf( F_IntNetValue >= 0, colorBlue, colorOrange); 
-	Plot( abs(F_IntNetValue), 
-		  "FNet (B)", 
+
+//
+// Foreign transaction value, drawn over the transaction value above
+//
+_SECTION_BEGIN("Foreign Value (B)");
+	ffIntervalValue = ffGetIntervalValue();
+	
+	dynamic_color = IIf( ffIntervalValue >= 0, colorBlue, colorOrange); 
+	Plot( abs(ffIntervalValue), 
+		  WriteIf(ffIntervalValue >= 0, "Net Buy (B)", "Net Sell (B)"), 
 		  dynamic_color, 
 		  styleHistogram | styleThick | styleOwnScale,
 		  Null,
-		  MaxValue,
+		  maxIntervalValue,
 		  0,
 		  1,
 		  3);
-	
 _SECTION_END();
+
 
 /*
 _SECTION_BEGIN("Daily Avg");
@@ -86,19 +110,19 @@ _SECTION_BEGIN("Daily Avg");
 _SECTION_NAME();
 */
 
+//
+// Foreign accummulation (balance)
+//
 _SECTION_BEGIN("Foreign Balance (B)");
-	BalancePeriodDays = Param("Balance Period Days", 2, 1, 600);
+	if (Interval() < inDaily) {
+		ffBalance = SumDays(ffIntervalValue, 1);
+	} else {
+		ffBalance = Cum(ffIntervalValue);
+	}
 	
-	IntNetValue = odbcGetArraySQL(" SELECT INT_NET_VALUE, dtime " + 
-								  " FROM v_adj_intraday_foreign " +
-								  " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
-
-	Plot( SumDays(IntNetValue, BalancePeriodDays), 
-		  "Balance(" + NumToStr(BalancePeriodDays, 1.0) + ")(B)", 
+	Plot( ffBalance, 
+		  "Balance(B)", 
 		  ParamColor( "Color", colorRed ), 
 		  styleLine | styleOwnScale | styleThick, 
 		  Null, Null, Null, 2); 
 _SECTION_END();
-
-
-SetBackgroundText(Name() + "-" + BalancePeriodDays);

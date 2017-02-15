@@ -1,4 +1,4 @@
-#include_once <..\..\quant.id\afl\tools.afl>
+#include_once <..\..\quant.id\AFL\Tools.afl>
 
 odbcOpenDatabase( "ODBC;DSN=bandarmologi");
 

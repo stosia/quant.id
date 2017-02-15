@@ -1,0 +1,113 @@
+/* 
+ * Copyright (C) 2017 Benny Prijono <benny@stosia.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ */
+#include_once <..\..\quant.id\AFL\Tools.afl>
+#include_once <..\..\quant.id\AFL\ForeignFlow.afl>
+ 
+// All symbols and quotes accepted.
+// Control which symbols are included/excluded from the Exploration filter settings
+Filter = 1;
+
+// Set to daily since the datasource is intraday
+TimeFrameSet(inDaily);
+
+// Get the start and end period
+startDate = Status("rangefromdate");
+endDate = Status("rangetodate");
+
+// Some symbols don't have data and they cause us trouble unless we do this
+if (BarCount > 0) {
+
+	ffDayNetValue = ffGetIntervalValue();
+
+	dn = DateNum();
+	tn = TimeNum();
+
+	// startIndex is the bar just prior to startDate
+	for (startIndex=0; startIndex < BarCount; ++startIndex) {
+		if (dn[startIndex] >= startDate) {
+			if (startIndex > 0)
+				startIndex -= 1;
+			break;
+		}
+	}
+
+	// endIndex is the bar when endDate happens
+	for (endIndex = startIndex; endIndex < BarCount; ++endIndex) {
+		if (dn[endIndex] == endDate) {
+			break;
+		} else if (DateTimeDiff(dn[endIndex], endDate) > 0) {
+			if (endIndex > 0)
+				endIndex -= 1;
+			break;
+		}
+	}
+
+	if (startIndex >= BarCount)
+		startIndex = 0;
+
+	if (endIndex >= BarCount) {
+		endIndex = BarCount - 1;
+	}
+
+	// Add text column for debugging
+	dt = DateTime();
+	comment = "From " + DateTimeToStr(dt[startIndex],3) + " to " + DateTimeToStr(dt[endIndex], 3);
+	AddTextColumn(comment, "Comment");
+
+	// Foreign balance
+	ffBalance = Cum(ffDayNetValue);
+
+	// Ret is the return/yield of the stock from startDate to endDate
+	Ret = (C - C[startIndex]) * 100 / C[startIndex];
+	
+	// NetFlow is the foreign flow balance from startDate to endDate
+	NetFlow = ffBalance - ffBalance[startIndex];
+
+	// color based on net flow. Positive net flow is green, negative is red
+	if (NetFlow[endIndex] >= 0) {
+		clr = NetFlow[endIndex] * 255 / 100;
+		if (clr > 255)
+			clr = 255;
+		flowClr = ColorRGB(0, clr, 0);
+	} else {
+		clr = NetFlow[endIndex] * 255 / (-100);
+		if (clr > 255)
+			clr = 255;
+		flowClr = ColorRGB(clr, 0, 0);
+	}
+
+	// color based on yield. Positive yield is green, negative is red
+	if (Ret[endIndex] >= 0) {
+		clr = Ret[endIndex] * 255 / 5;
+		if (clr > 255)
+			clr = 255;
+		retClr = ColorRGB(0, clr, 0);
+	} else {
+		clr = Ret[endIndex] * 255 / (-5);
+		if (clr > 255)
+			clr = 255;
+		retClr = ColorRGB(clr, 0, 0);
+	}
+
+	// The dot color is the combination of flow color and return color
+	clr = (flowClr + retClr) / 2;
+	
+	// Plot the point
+	XYChartAddPoint( "Return/Foreign Flow", WriteIf(Name() == "IHSG", Name(), Name()), Netflow[endIndex], Ret[endIndex], clr, clr); 
+	XYChartSetAxis("Return/Foreign Flow", "Netflow[B]", "Return[%]", styleDots);	
+}
