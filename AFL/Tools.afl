@@ -1,63 +1,74 @@
 /* 
- * Copyright (C) 2017 Benny Prijono <benny@stosia.com>
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
+ * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
+ * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
+ * produk yang dijual secara komersial, karena hal itu tidak etis.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
  */
 MILYAR = 1000000000.0;
 
 Open = IIf(BarIndex() > 0, Ref(Close, -1), Close);
 
-function odbcConnectDatabase()
+function stConnectDatabase()
 {
 	odbcOpenDatabase( "ODBC;DSN=bandarmologi");
 }
 
-function SetBackgroundText( txt )
+function stSetBackgroundTitle( txt )
 {
+	titleFontSize = 3;
+	
 	GfxSetOverlayMode(1);
-	GfxSelectFont("Tahoma", Status("pxheight")/3 );
+	GfxSelectFont("Tahoma", Status("pxheight")/titleFontSize );
 	GfxSetTextAlign( 6 );// center alignment
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
 	GfxTextOut( txt, Status("pxwidth")/2, Status("pxheight")/50 );
 }
 
-function SetSubtitleText( txt )
+function stSetBackgroundSubtitle( txt )
 {
 	height = Status("pxheight");
-	size = 10;
+	titleFontHeight = height/3;
+	subtitleFontHeight = height/10;
+	spacing = height/100;
 	
 	GfxSetOverlayMode(1);
-	GfxSelectFont("Tahoma", height/size );
+	GfxSelectFont("Tahoma",  subtitleFontHeight);
 	GfxSetTextAlign( 6 );// center alignment
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
-	GfxTextOut( txt, Status("pxwidth")/2,  height/50 + height/3 + height/size + height/100);
+	GfxTextOut( txt, Status("pxwidth")/2,  
+				height/50 + titleFontHeight + subtitleFontHeight + spacing);
 }
 
-function SetSubSubtitleText( txt )
+function stSetBackgroundSubSubtitle( txt )
 {
 	height = Status("pxheight");
-	size = 15;
+	titleFontHeight = height/3;
+	subtitleFontHeight = height/10;
+	subsubtitleFontHeight = height/15;
+	spacing = height/100;
 	
 	GfxSetOverlayMode(1);
-	GfxSelectFont("Tahoma", height/size );
+	GfxSelectFont("Tahoma", subsubtitleFontHeight );
 	GfxSetTextAlign( 6 );// center alignment
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
-	GfxTextOut( txt, Status("pxwidth")/2,  height/50 + height/3 + height/10 + height/10 + height/100 + height/size + height/100);
+	GfxTextOut( txt, Status("pxwidth")/2,  
+				height/50 + titleFontHeight + 2*subtitleFontHeight + 
+					2*spacing + subsubtitleFontHeight);
 }
 
 function IndicatorRecommend( txt, goodness )
@@ -119,7 +130,60 @@ function GetCurrentDate()
 	return Year_str + "-" + Mon_str + "-" + Day_str;
 }
 
-function SumDays(array, days)
+//
+// For intraday, the MA should not use value from previous day
+//
+function stIntradayMA(arr, range)
+{
+	prev_dn = -1;
+	dn = DateNum();
+	
+	for (i=0; i<BarCount; ++i) {
+		if (dn[i] != prev_dn) {
+			total = arr[i];
+			count = 1;
+		} else {
+			if (count < range) {
+				count += 1;
+				total += arr[i];
+			} else {
+				total = total - arr[i - range] + arr[i];
+			}
+		}
+		
+		result[i] = total * 1.0 / count;
+	}
+
+	return result;
+}
+
+//
+// Calculate simple MA for the array with provision for intraday.
+//
+function stMA(arr, range)
+{
+	if (Interval() >= inDaily) {
+		result = MA(arr, range);
+	} else {
+		result = stIntradayMA(arr, range);
+	}
+	return result;
+}
+
+//
+// Return the typical price (i.e. (H + L + C) / 3)
+//
+function stTypicalPrice()
+{
+	return (H + L + C) / 3;
+}
+
+//
+// General purpose function to calculate the SUM of an array 
+// over certain days. For example if "days" is 2, then calculate
+// daily sum for the past two days.
+//
+function stSumDays(array, days)
 {
 	//dn = DateNum();
 	dn = DaysSince1900();
@@ -145,38 +209,7 @@ function SumDays(array, days)
 		}
 	}
 	
-	//return bars;
 	return result;
-}
-
-function SumDays0(array, days)
-{
-	//dn = DateNum();
-	dn = DaysSince1900();
-	last_dn = -1;
-	cur_sum = 0;
-	bar_cnt = 0;
-	days_found = 1;
-	
-	for (i=0; i<BarCount; ++i) {
-		if (dn[i] != last_dn) {
-			days_found++;
-			last_dn = dn[i];
-			if (days_found > days) {
-				cur_sum = 0;
-				bar_cnt = 0;
-			}
-		}
-		
-		bar_cnt++;
-		bars[i] = bar_cnt;
-		cur_sum += array[i];
-		result[i] = cur_sum;
-		
-	}
-	
-	return bars;
-	//return result;
 }
 
 function LastDayValue(array)
@@ -197,10 +230,3 @@ function LastDayValue(array)
 	return result;
 }
 
-//
-// Return the typical price (i.e. (H + L + C) / 3)
-//
-function typicalPrice()
-{
-	return (H + L + C) / 3;
-}

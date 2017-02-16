@@ -1,0 +1,59 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
+ * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
+ * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
+ * produk yang dijual secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ */
+#include_once <..\..\quant.id\AFL\Tools.afl>
+#include_once <..\..\quant.id\AFL\Common.afl>
+#include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow.afl>
+
+_SECTION_BEGIN("Foreign Net");
+	stSetBackgroundTitle(_SECTION_NAME());
+
+	B = stGetFFIntervalBuyValue();
+	S = stGetFFIntervalSellValue();
+
+	bcolor = ColorBlend( colorBlueGrey, GetChartBkColor(), 0.5  );
+	scolor = ColorBlend( colorLightOrange, GetChartBkColor(), 0.5  );
+
+	Net = B-S;
+	maxNet = Max(Max(HighestVisibleValue(B), HighestVisibleValue(S)), HighestVisibleValue(abs(Net)));
+	//minNet = LowestVisibleValue(abs(Net));
+	minNet = 0;
+	
+	Plot(abs(Net), "NetPlot", IIf(B >= S, colorBlueGrey, colorLightOrange), styleHistogram | styleOwnScale | styleNoTitle, minNet, maxNet, 0, 4, 5);
+	Plot(Net, "Net", IIf(B >= S, colorBlueGrey, colorLightOrange), styleNoDraw | styleOwnScale);
+	
+	//Plot(B, "Buy", bcolor, styleLine | styleNoTitle, minNet, maxNet, 0, 1, 1);
+	//Plot(S, "Sell", scolor, styleLine | styleNoTitle, minNet, maxNet, 0, 1, 1);
+	
+	PlotOHLC( Min(B,S), Min(B,S), Max(B, S), Max(B, S), "BS", 
+			  IIf(Ref(B,1) >= Ref(S,1), bcolor, scolor), 
+			  styleCloud | styleNoLabel | styleNoTitle | styleOwnScale, 
+			  minNet, maxNet, 0, 2, 1);
+	
+	
+	/*
+	maper1 = Param("Vol MA Period1", 5, 5, 60);
+	maper2 = Param("Vol MA Period2", 20, 5, 60);
+	
+	Plot(MA(Max(B,S), maper1), "MA" + maper1, ColorBlend(colorRed, GetChartBkColor(), 0.5), styleLine, Null, Null, 0, 3);
+	Plot(MA(Max(B,S), maper2), "MA" + maper2, ColorBlend(colorRed, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 3);
+	*/
+	
+_SECTION_END();

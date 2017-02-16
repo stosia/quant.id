@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+	<Sheet>
+		<Name>General</Name>
+		<Pane>
+			<ChartID>1193</ChartID>
+			<PercentHeight>60.4333</PercentHeight>
+			<Formula>/* \r\n * Copyright (C)2017 PT. Stosia Teknologi Investasi\r\n *\r\n * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya\r\n * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis\r\n * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode\r\n * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.\r\n * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.\r\n *\r\n * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari\r\n * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau\r\n * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel\r\n * produk yang dijual secara komersial, karena hal itu tidak etis.\r\n *\r\n * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil\r\n * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan\r\n * bersama file ini.\r\n *\r\n * Author: Benny Prijono &lt;benny@stosia.com&gt;\r\n */\r\n\r\n#include_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_Price.afl&gt;\r\n</Formula>
+			<FilePath>Formulas\\quant.id\\Indicators\\ForeignFlow\\Price_Indicator.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1073741835</MoreFlags>
+			<Min>59650</Min>
+			<Max>78396</Max>
+		</Pane>
+		<Pane>
+			<ChartID>1194</ChartID>
+			<PercentHeight>19.4983</PercentHeight>
+			<Formula>/* \r\n * Copyright (C)2017 PT. Stosia Teknologi Investasi\r\n *\r\n * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya\r\n * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis\r\n * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode\r\n * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.\r\n * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.\r\n *\r\n * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari\r\n * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau\r\n * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel\r\n * produk yang dijual secara komersial, karena hal itu tidak etis.\r\n *\r\n * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil\r\n * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan\r\n * bersama file ini.\r\n *\r\n * Author: Benny Prijono &lt;benny@stosia.com&gt;\r\n */\r\n\r\n#include_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_Net.afl&gt;\r\n</Formula>
+			<FilePath>Formulas\\quant.id\\Indicators\\ForeignFlow\\Net_Indicator.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1342177281</MoreFlags>
+			<Min>-5.55005</Min>
+			<Max>291.71</Max>
+		</Pane>
+		<Pane>
+			<ChartID>1195</ChartID>
+			<PercentHeight>20.0684</PercentHeight>
+			<Formula>/* \r\n * Copyright (C)2017 PT. Stosia Teknologi Investasi\r\n *\r\n * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya\r\n * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis\r\n * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode\r\n * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.\r\n * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.\r\n *\r\n * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari\r\n * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau\r\n * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel\r\n * produk yang dijual secara komersial, karena hal itu tidak etis.\r\n *\r\n * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil\r\n * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan\r\n * bersama file ini.\r\n *\r\n * Author: Benny Prijono &lt;benny@stosia.com&gt;\r\n */\r\n\r\n#include_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_Ratio.afl&gt;\r\n</Formula>
+			<FilePath>Formulas\\quant.id\\Indicators\\ForeignFlow\\Ratio_Indicator.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1342177281</MoreFlags>
+			<Min>-2</Min>
+			<Max>105.12</Max>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>MACD</Name>
+		<Pane>
+			<ChartID>1196</ChartID>
+			<PercentHeight>60</PercentHeight>
+			<Formula>/* \r\n * Copyright (C)2017 PT. Stosia Teknologi Investasi\r\n *\r\n * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya\r\n * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis\r\n * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode\r\n * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.\r\n * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.\r\n *\r\n * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari\r\n * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau\r\n * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel\r\n * produk yang dijual secara komersial, karena hal itu tidak etis.\r\n *\r\n * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil\r\n * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan\r\n * bersama file ini.\r\n *\r\n * Author: Benny Prijono &lt;benny@stosia.com&gt;\r\n */\r\n\r\n#include_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_Price.afl&gt;\r\n</Formula>
+			<FilePath>Formulas\\quant.id\\Indicators\\ForeignFlow\\Price_Indicator.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1073741835</MoreFlags>
+			<Min>59650</Min>
+			<Max>78396</Max>
+		</Pane>
+		<Pane>
+			<ChartID>1197</ChartID>
+			<PercentHeight>20</PercentHeight>
+			<Formula>r1 = Param( "Fast avg", 12, 2, 200, 1 );\r\nr2 = Param( "Slow avg", 26, 2, 200, 1 );\r\nr3 = Param( "Signal avg", 9, 2, 200, 1 );\r\nPlot( ml = MACD(r1, r2), StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), ParamColor("MACD color", colorRed ), ParamStyle("MACD style") );\r\nPlot( sl = Signal(r1,r2,r3), "Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorBlue ), ParamStyle("Signal style") );\r\nPlot( ml-sl, "MACD Histogram", ParamColor("Histogram color", colorDefault ), styleNoTitle | ParamStyle("Histogram style", styleHistogram | styleNoLabel, maskHistogram ) );\r\n</Formula>
+			<FilePath>Formulas\\Indicators\\MACD - Moving Average Convergence Divergence.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1342177281</MoreFlags>
+			<Min>-1822.98</Min>
+			<Max>2238.65</Max>
+		</Pane>
+		<Pane>
+			<ChartID>1198</ChartID>
+			<PercentHeight>20</PercentHeight>
+			<Formula>/* \r\n * Copyright (C)2017 PT. Stosia Teknologi Investasi\r\n *\r\n * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya\r\n * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis\r\n * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode\r\n * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.\r\n * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.\r\n *\r\n * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari\r\n * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau\r\n * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel\r\n * produk yang dijual secara komersial, karena hal itu tidak etis.\r\n *\r\n * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil\r\n * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan\r\n * bersama file ini.\r\n *\r\n * Author: Benny Prijono &lt;benny@stosia.com&gt;\r\n */\r\n\r\n#include_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_MACD.afl&gt;\r\n</Formula>
+			<FilePath>Formulas\\quant.id\\Indicators\\ForeignFlow\\MACD_Indicator.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1342177281</MoreFlags>
+			<Min>-112.223</Min>
+			<Max>295.599</Max>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 3</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 4</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 5</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 6</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 7</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 8</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Includes>
+		<File>
+			<Path>_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_Price.afl&gt;</Path>
+			<Formula>
+			</Formula>
+		</File>
+		<File>
+			<Path>_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_Net.afl&gt;</Path>
+			<Formula>
+			</Formula>
+		</File>
+		<File>
+			<Path>_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_Ratio.afl&gt;</Path>
+			<Formula>
+			</Formula>
+		</File>
+		<File>
+			<Path>_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_Price.afl&gt;</Path>
+			<Formula>
+			</Formula>
+		</File>
+		<File>
+			<Path>_once &lt;..\\..\\quant.id\\AFL\\ForeignFlow\\ForeignFlow_MACD.afl&gt;</Path>
+			<Formula>
+			</Formula>
+		</File>
+	</Includes>
+</Window>

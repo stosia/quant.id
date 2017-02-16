@@ -19,34 +19,4 @@
  * Author: Benny Prijono <benny@stosia.com>
  */
 
-#include_once <..\..\quant.id\AFL\Tools.afl>
-
-
-//
-// Interval value is the total transaction value (in Milyar Rp) for
-// each interval (=bar), where interval can be intraday or daily. Interval 
-// greater than one day is not supported yet.
-//
-// Returns:
-//   interval value (array)
-//
-function stGetIntervalValue()
-{
-	stConnectDatabase();
-
-	if (Interval() < inDaily) {
-		intVal = odbcGetArraySQL(" SELECT int_value, dtime " + 
-								 " FROM v_adj_intraday_foreign " +
-								 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
-	} else if (Interval() >= inDaily) {
-		if (Interval() > inDaily) {
-			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
-		}
-		
-		intVal = odbcGetArraySQL(" SELECT DAY_VALUE, dtime " + 
-								 " FROM v_adj_intraday_foreign " +
-								 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
-	}
-	
-	return intVal;
-}
+#include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow_Price.afl>

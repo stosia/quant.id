@@ -1,19 +1,22 @@
 /* 
- * Copyright (C) 2017 Benny Prijono <benny@stosia.com>
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
+ * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
+ * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
+ * produk yang dijual secara komersial, karena hal itu tidak etis.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
  */
 #include_once <..\..\quant.id\AFL\Tools.afl>
 
@@ -25,9 +28,9 @@
 // Return:
 //   foreign flow NET value array for each interval (in milyar Rp)
 //
-function ffGetIntervalValue()
+function stGetFFIntervalValue()
 {
-	odbcConnectDatabase();
+	stConnectDatabase();
 
 	if (Interval() < inDaily) {
 		ffIntVal = odbcGetArraySQL( " SELECT INT_NET_VALUE, dtime " + 
@@ -49,9 +52,9 @@ function ffGetIntervalValue()
 //
 // Get foreign BUY value (in milyar Rp) for each interval
 //
-function ffGetIntervalBuyValue()
+function stGetFFIntervalBuyValue()
 {
-	odbcConnectDatabase();
+	stConnectDatabase();
 
 	if (Interval() < inDaily) {
 		ffIntBuyValue = odbcGetArraySQL( " SELECT int_buy_value, dtime " + 
@@ -73,9 +76,9 @@ function ffGetIntervalBuyValue()
 //
 // Get foreign SELL value (in milyar Rp) for each interval
 //
-function ffGetIntervalSellValue()
+function stGetFFIntervalSellValue()
 {
-	odbcConnectDatabase();
+	stConnectDatabase();
 
 	if (Interval() < inDaily) {
 		ffIntBuyValue = odbcGetArraySQL( " SELECT int_sell_value, dtime " + 
@@ -98,10 +101,10 @@ function ffGetIntervalSellValue()
 // Get foreign balance from the interval value. Foreign balance is the total cummulative value 
 // of foreign flow.
 //
-function ffGetBalanceFromInterval(ffIntervalValue)
+function stGetFFBalanceFromInterval(ffIntervalValue)
 {
 	if (Interval() < inDaily) {
-		ffBalance = SumDays(ffIntervalValue, 1);
+		ffBalance = stSumDays(ffIntervalValue, 1);
 	} else {
 		ffBalance = Cum(ffIntervalValue);
 	}
@@ -112,19 +115,19 @@ function ffGetBalanceFromInterval(ffIntervalValue)
 //
 // Get foreign balance. Foreign balance is the total cummulative value of foreign flow.
 //
-function ffGetBalance()
+function stGetFFBalance()
 {
-	ffIntervalValue = ffGetIntervalValue();
-	return ffGetBalanceFromInterval(ffIntervalValue);
+	ffIntervalValue = stGetFFIntervalValue();
+	return stGetFFBalanceFromInterval(ffIntervalValue);
 }
 
 //
 // Get average price value of foreign ownership
 //
-function ffGetAverageFromIntervalNet(ffIntVal)
+function stGetFFAverageFromIntervalNet(ffIntVal)
 {
 	ffIntVal = ffIntVal * MILYAR;
-	typ = typicalPrice();
+	typ = stTypicalPrice();
 
 	dn = DateNum();
 	prev_dn = -1;
@@ -188,8 +191,11 @@ function ffGetAverageFromIntervalNet(ffIntVal)
 	return ffAvg;
 }
 
-function ffGetAverage()
+//
+// Get foreign average stock price
+//
+function stGetFFAverage()
 {
-	ffIntVal = ffGetIntervalValue();
-	return ffGetAverageFromIntervalNet(ffIntVal);
+	ffIntVal = stGetFFIntervalValue();
+	return stGetFFAverageFromIntervalNet(ffIntVal);
 }

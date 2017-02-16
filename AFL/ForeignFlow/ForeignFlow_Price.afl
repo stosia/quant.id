@@ -1,31 +1,34 @@
 /* 
- * Copyright (C) 2017 Benny Prijono <benny@stosia.com>
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
+ * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
+ * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
+ * produk yang dijual secara komersial, karena hal itu tidak etis.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
  */
  
 SetBarsRequired(sbrAll);
 
 #include_once <..\..\quant.id\AFL\Tools.afl>
 #include_once <..\..\quant.id\AFL\Common.afl>
-#include_once <..\..\quant.id\AFL\ForeignFlow.afl>
+#include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 
 
-SetBackgroundText(Name());
-SetSubtitleText("Foreign Flow System");
-SetSubSubtitleText("© 2017 quant.id");
+stSetBackgroundTitle(Name());
+stSetBackgroundSubtitle("Foreign Flow System");
+stSetBackgroundSubsubtitle("© 2017 quant.id");
 
 //
 // Price candlesticks
@@ -42,7 +45,7 @@ _SECTION_END();
 // Total transaction value
 //
 _SECTION_BEGIN("Value (B)");
-	intervalValue = getIntervalValue();
+	intervalValue = stGetIntervalValue();
 	
 	maxIntervalValue = Max(HighestVisibleValue(intervalValue) * 2, 1);
 	
@@ -63,7 +66,7 @@ _SECTION_END();
 // Foreign transaction value, drawn over the transaction value above
 //
 _SECTION_BEGIN("Foreign Value (B)");
-	ffIntervalValue = ffGetIntervalValue();
+	ffIntervalValue = stGetFFIntervalValue();
 	
 	Plot( abs(ffIntervalValue), 
 		  WriteIf(ffIntervalValue >= 0, "Net Buy (B)", "Net Sell (B)"), 
@@ -115,7 +118,7 @@ _SECTION_NAME();
 // Foreign accummulation (balance)
 //
 _SECTION_BEGIN("Foreign Balance (B)");
-	ffBalance = ffGetBalanceFromInterval(ffIntervalValue);
+	ffBalance = stGetFFBalanceFromInterval(ffIntervalValue);
 	
 	ffBalanceMin = LowestVisibleValue(ffBalance);
 	ffBalanceMax = HighestVisibleValue(ffBalance);
@@ -134,7 +137,7 @@ _SECTION_END();
 // Foreign average price
 //
 _SECTION_BEGIN("Foreign Average");
-	ffAvg = ffGetAverageFromIntervalNet(ffIntervalValue);
+	ffAvg = stGetFFAverageFromIntervalNet(ffIntervalValue);
 	Plot( ffAvg, "Foreign Avg", colorGreen, styleDashed | styleThick | styleNoLabel); 
 _SECTION_END();
 
