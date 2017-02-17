@@ -20,11 +20,17 @@ MILYAR = 1000000000.0;
 
 Open = IIf(BarIndex() > 0, Ref(Close, -1), Close);
 
+//
+// Connect to ODBC database
+//
 function stConnectDatabase()
 {
 	odbcOpenDatabase( "ODBC;DSN=bandarmologi");
 }
 
+//
+// Set the text to be put as chart background
+//
 function stSetBackgroundTitle( txt )
 {
 	titleFontSize = 3;
@@ -37,6 +43,9 @@ function stSetBackgroundTitle( txt )
 	GfxTextOut( txt, Status("pxwidth")/2, Status("pxheight")/50 );
 }
 
+//
+// Set the second line in of the text to be put as chart background
+//
 function stSetBackgroundSubtitle( txt )
 {
 	height = Status("pxheight");
@@ -53,6 +62,9 @@ function stSetBackgroundSubtitle( txt )
 				height/50 + titleFontHeight + subtitleFontHeight + spacing);
 }
 
+//
+// Set the third line in of the text to be put as chart background
+//
 function stSetBackgroundSubSubtitle( txt )
 {
 	height = Status("pxheight");
@@ -71,25 +83,74 @@ function stSetBackgroundSubSubtitle( txt )
 					2*spacing + subsubtitleFontHeight);
 }
 
-function IndicatorRecommend( txt, goodness )
+//
+// Display MessageBox in the chart
+//
+function stMessageBox( txt, color, bkcolor )
+{
+	fontFace = "Arial";
+	fontSize = 12;
+	
+	x = Status("pxwidth")/2;
+	y = 20;
+	
+	GfxSetOverlayMode(0);
+	GfxSelectFont(fontFace, fontSize);
+	GfxSetTextAlign( 6 );// center alignment
+	GfxSetTextColor(color);
+	GfxSetBkColor(bkcolor);
+	GfxSetBkMode(2); // opaque
+	GfxTextOut( txt, x,  y);
+
+}
+
+//
+// Display error message
+//
+function stAlert(txt)
+{
+	stMessageBox(txt, colorWhite, colorRed);
+}
+
+//
+// Display recommendation in the chart.
+//
+// Parameters:
+//  - goodness: range from -2 to +2, where -2 is strong sell and +2 is strong buy
+//  - txt: OPTIONAL text. If empty, default is set based on goodness:
+//          - -2: "SSELL"
+//          - -1: "SELL"
+//          - 0: "HOLD"
+//          - +1: "BUY"
+//          - +2: "SBUY"
+//
+function stDisplaySignal( goodness, txt )
 {
 	if (goodness >= 2) {
 		color = colorWhite;
 		bkColor = colorBrightGreen;
+		myText = "SBUY";
 	} else if (goodness >= 1) {
 		color = colorWhite;
 		bkColor = colorGreen;
+		myText = "BUY";
 	} else if (goodness == 0) {
 		color = colorWhite;
 		bkColor = colorLightGrey;
+		myText = "HOLD";
 	} else if (goodness == -1) {
 		color = colorWhite;
 		bkColor = colorLightOrange;
+		myText = "SELL";
 	} else {
 		color = colorWhite;
 		bkColor = colorRed;
+		myText = "SSELL";
 	}
 	
+	if (txt == "")
+		txt = myText;
+		
 	GfxSetOverlayMode(1);
 	GfxSelectFont("Lucida Console", 10, 800 );
 	GfxSetTextAlign( 2  );
@@ -99,35 +160,22 @@ function IndicatorRecommend( txt, goodness )
 	GfxTextOut( txt, Status("pxwidth")-62, 0 );
 }
 
-function DisplayWatchlists()
+//
+// Get current date in ISO format
+//
+function stISOToday()
 {
-	_N(txt = "");
-	_N(txt += WriteIf(InWatchListName("Universe"), "U", "_"));
-	_N(txt += WriteIf(InWatchListName("Foreign Flow Action"), "A", "_"));
-	_N(txt += WriteIf(InWatchListName("Foreign Flow Starting"), "S", "_"));
-	_N(txt += WriteIf(InWatchListName("Portfolio Hani") || InWatchListName("Portfolio Benny"), "P", "_"));
-	
-	GfxSetOverlayMode(1);
-	GfxSelectFont("Lucida Console", 10, 800 );
-	GfxSetTextAlign( 2  );
-	GfxSetTextColor( colorWhite );
-	GfxSetBkColor( ColorRGB( 200, 200, 200 ) );
-	GfxSetBkMode( 2 );
-	//GfxTextOut( txt, Status("pxwidth")-65, Status("pxheight")-30 );
-	GfxTextOut( txt, Status("pxwidth")-110, 0 );
+	n = Now(5);
+	return DateTimeToStr(n, 4);
 }
 
-function GetCurrentDate()
+//
+// Convert DateNum to ISO date string
+//
+function stDateNumToStr(dn)
 {
-	_N(Year_str = NumToStr(Now(8), 4.0, False));
-	_N(Mon_str = NumToStr(Now(7), 1.0, False));
-	if (StrLen(Mon_str) < 2)
-		_N(Mon_str = "0" + Mon_str);
-	_N(Day_str = NumToStr(Now(6), 1.0, False));
-	if (StrLen(Day_str) < 2)
-		_N(Day_str = "0" + Day_str);
-	
-	return Year_str + "-" + Mon_str + "-" + Day_str;
+	dt = DateTimeConvert(2, dn);
+	return DateTimeToStr(dt, 4);
 }
 
 //
@@ -212,19 +260,22 @@ function stSumDays(array, days)
 	return result;
 }
 
-function LastDayValue(array)
+//
+// Fill the intraday array with the last value of the day
+//
+function stLastDayValue(array)
 {
 	dn = DateNum();
 	
 	cur_dn = -1;
-	ladst_day_value = -1;
+	last_day_value = -1;
 	
 	for (i = BarCount-1; i >= 0; i--) {
 		if (dn[i] != cur_dn) {
 			cur_dn = dn[i];
-			ladst_day_value = array[i];
+			last_day_value = array[i];
 		}
-		result[i] = ladst_day_value;
+		result[i] = last_day_value;
 	}
 	
 	return result;

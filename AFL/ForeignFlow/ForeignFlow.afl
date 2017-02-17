@@ -1,6 +1,8 @@
 /* 
  * Copyright (C)2017 PT. Stosia Teknologi Investasi
  *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
  * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
  * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
  * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
@@ -38,7 +40,7 @@ function stGetFFIntervalValue()
 									 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
 	} else {
 		if (Interval() > inDaily) {
-			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
+			stAlert("Error: Interval greater than daily is not supported yet");
 		}
 		
 		ffIntVal = odbcGetArraySQL( " SELECT DAY_NET_VALUE, dtime " + 
@@ -62,7 +64,7 @@ function stGetFFIntervalBuyValue()
 										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
 	} else {
 		if (Interval() > inDaily) {
-			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
+			stAlert("Error: Interval greater than daily is not supported yet");
 		}
 		
 		ffIntBuyValue = odbcGetArraySQL( " SELECT day_buy_value, dtime " + 
@@ -86,7 +88,7 @@ function stGetFFIntervalSellValue()
 										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
 	} else {
 		if (Interval() > inDaily) {
-			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
+			stAlert("Error: Interval greater than daily is not supported yet");
 		}
 		
 		ffIntBuyValue = odbcGetArraySQL( " SELECT day_sell_value, dtime " + 
@@ -134,7 +136,7 @@ function stGetFFAverageFromIntervalNet(ffIntVal)
 	isIntraday = Interval() < inDaily;
 	
 	if (Interval() > inDaily) {
-		printf("** WARNING **\nInterval greater than daily is not supported!\n");
+		stAlert("Error: Interval greater than daily is not supported yet");
 	}
 
 	i = 0;

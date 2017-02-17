@@ -1,0 +1,84 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini dilisensikan kepada Anda, bukan  Anda miliki.  Pemilik file ini
+ * adalah pemegang  hak cipta ("copyright holder") di atas. Gunakanlah file
+ * ini sesuai dengan lisensi yang telah ditetapkan untuk file ini.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * modifikasi atau karya tersebut kepada publik. Hal ini untuk menjaga agar
+ * pengetahuan yang ada di sini menjadi lebih berkembang  di masa mendatang 
+ * untuk kemajuan kita bersama.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit di pasar saham baik secara perorangan atau organisasi, asal tidak
+ * jahat. Sebagai tambahan permintaan, kami menghimbau untuk TIDAK  menjual
+ * kode/file  ini secara  apa adanya  atau dalam bundel  produk yang dijual
+ * secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ * Contributors:
+ *  - 
+ */
+
+#include_once <..\..\quant.id\AFL\Bandarmologi\Bandarmologi.afl>
+
+_SECTION_BEGIN("Price");
+	_N(Title = StrFormat("©2017 quant.id -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
+	
+	SetChartOptions(0, chartShowDates);
+	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.3)));
+	Plot( C, "Close",  
+		  IIf(C >= Open, ColorBlend(GetChartBkColor(), colorGreen, 0.5), 
+		                 ColorBlend(GetChartBkColor(), colorBrown, 0.5)), 
+		  GetPriceStyle() | styleOwnScale, Null, Null, 0, 1); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Bandarmologi Detail");
+	// Init bandarmologi as master
+	stBdInit(True);
+
+	// Background text
+	stSetBackgroundTitle(Name());
+	stSetBackgroundSubtitle("Bandarmologi " + stBdParamTopCount + "/" +  stBdParamDays);
+	stSetBackgroundSubsubtitle("© 2017 quant.id");
+	
+	// Y-axis
+	Plot(0, "0", colorGrey40, styleLine | styleThick | styleNoLabel, 
+	     Null, Null, 0, -5, 3);
+
+	// Plot top buyers and sellers
+	if (stBdParamTopCount > 0) stBdPlotBuyer(0);
+	if (stBdParamTopCount > 1) stBdPlotBuyer(1);
+	if (stBdParamTopCount > 2) stBdPlotBuyer(2);
+	if (stBdParamTopCount > 3) stBdPlotBuyer(3);
+	if (stBdParamTopCount > 4) stBdPlotBuyer(4);
+
+	if (stBdParamTopCount > 4) stBdPlotSeller(4);
+	if (stBdParamTopCount > 3) stBdPlotSeller(3);
+	if (stBdParamTopCount > 2) stBdPlotSeller(2);
+	if (stBdParamTopCount > 1) stBdPlotSeller(1);
+	if (stBdParamTopCount > 0) stBdPlotSeller(0);
+
+	// Add custom broker, separated by comma.
+	// E.g.: "YP,PD"
+	addBrokers = ParamStr("More brokers", "");
+	i = 0;
+	while (stBdParamTopCount + i < 6) {
+		broker = StrExtract(addBrokers, i);
+		if (broker == "")
+			break;
+		stBdPlotBroker(broker, True, stBdParamTopCount+i);
+		i += 1;
+	}
+
+_SECTION_END();

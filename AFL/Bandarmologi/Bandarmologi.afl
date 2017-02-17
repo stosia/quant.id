@@ -1,0 +1,240 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini dilisensikan kepada Anda, bukan  Anda miliki.  Pemilik file ini
+ * adalah pemegang  hak cipta ("copyright holder") di atas. Gunakanlah file
+ * ini sesuai dengan lisensi yang telah ditetapkan untuk file ini.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * modifikasi atau karya tersebut kepada publik. Hal ini untuk menjaga agar
+ * pengetahuan yang ada di sini menjadi lebih berkembang  di masa mendatang 
+ * untuk kemajuan kita bersama.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit di pasar saham baik secara perorangan atau organisasi, asal tidak
+ * jahat. Sebagai tambahan permintaan, kami menghimbau untuk TIDAK  menjual
+ * kode/file  ini secara  apa adanya  atau dalam bundel  produk yang dijual
+ * secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ * Contributors:
+ *  - 
+ */
+
+#include_once <..\..\quant.id\AFL\Tools.afl>
+
+stBdTopBrokers = "";
+stBdBrokerCnt = 0;
+
+stBdParamDays = 0;
+stBdParamTopCount = 3;
+stBdParamAbs = False;
+
+_N(stBdStartBalanceDate = "2016-07-01");
+stBdStartDate = Null;
+
+stBdBuyerColors = 0;
+stBdBuyerColors[0] = colorBlue;
+stBdBuyerColors[1] = colorDarkYellow;
+stBdBuyerColors[2] = colorGreen;
+stBdBuyerColors[3] = colorTurquoise;
+stBdBuyerColors[4] = colorIndigo;
+stBdBuyerColors[5] = colorLightBlue;
+
+stBdSellerColors = 0;
+stBdSellerColors[0] = colorRed;
+stBdSellerColors[1] = colorOrange;
+stBdSellerColors[2] = colorGreen;
+stBdSellerColors[3] = colorDarkTeal;
+stBdSellerColors[4] = colorDarkRed;
+stBdSellerColors[5] = colorPink;
+
+//
+// Calculate start date, that is "days" prior to last date
+//
+function stBdGetStartDate(days)
+{
+	cur_dn = SelectedValue(DateNum());
+	latest_date = DateTimeConvert(2, cur_dn);
+	
+	sd = DateTimeAdd(latest_date, -days, inDaily);
+	return DateTimeToStr(sd, 4);
+}
+
+//
+// Init bandarmologi
+//
+function stBdInit(is_master)
+{
+	global stBdTopBrokers, stBdBrokerCnt, stBdStartDate, stBdParamDays, 
+		   stBdParamTopCount, stBdParamAbs, stBdStartBalanceDate;
+	
+	if (is_master) {
+		stBdParamDays = Param("Days", stBdParamDays, 0, 60);
+		stBdParamTopCount = Param("Brokers", stBdParamTopCount, 1, 5);
+		stBdParamAbs = ParamToggle("Absolute Value", "No|Yes", stBdParamAbs);
+		sb = ParamDate("Start Balance", stBdStartBalanceDate, 0);
+		_N( stBdStartBalanceDate = stDateNumToStr(sb) );
+		
+		StaticVarSet("stBdParamDays", stBdParamDays);
+		StaticVarSet("stBdParamTopCount", stBdParamTopCount);
+		StaticVarSet("stBdParamAbs", stBdParamAbs);
+		StaticVarSetText("stBdStartBalanceDate", stBdStartBalanceDate);
+	} else {
+		stBdParamDays = StaticVarGet("stBdParamDays");
+		stBdParamTopCount = StaticVarGet("stBdParamTopCount");
+		stBdParamAbs = StaticVarGet("stBdParamAbs");
+		_N( stBdStartBalanceDate = StaticVarGetText("stBdStartBalanceDate") );
+	}
+	
+	_N( stBdStartDate = stBdGetStartDate(stBdParamDays) );
+	if (stBdStartDate < stBdStartBalanceDate)
+		_N( stBdStartDate = stBdStartBalanceDate );
+	
+	_N(sql = "call get_top_brokers('" + Name() + "', '" + stBdStartDate + "')");
+	//printf(sql + "\n");
+	
+	stBdTopBrokers = odbcGetValueSQL(sql);
+	if (StrLen(stBdTopBrokers) < 3)
+		stBdTopBrokers = "";
+	stBdBrokerCnt = floor((StrLen(stBdTopBrokers) + 1) / 3);
+
+	if (stBdBrokerCnt == 0) {
+		stAlert("Error: broker summary for " + Name() + " is not available");
+	}
+}
+
+//
+// Get broker's cummulative ownership value
+//
+function stBdGetBrokerCumValue(broker_name)
+{
+	global stBdStartBalanceDate;
+	
+	_N(start_date_str = stBdStartBalanceDate);
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	}
+
+	if (Interval() == inDaily) {
+		_N( sql = " SELECT unix_timestamp(dtime), dtime FROM v_adj_intraday_broker2 " +
+			      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND " +
+			      "       dtime >= '" + start_date_str + " 00:00:00'" +
+			      " ORDER BY dtime Asc" );
+		mask = odbcGetArraySQL(sql);
+	}
+	
+	_N( sql = " SELECT day_net_value, dtime FROM v_adj_intraday_broker2 " +
+		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND " +
+		      "       dtime >= '" + start_date_str + " 00:00:00'" +
+		      " ORDER BY dtime Asc" );
+	
+	dnet = odbcGetArraySQL(sql) / MILYAR;
+	
+	if (Interval() < inDaily)
+		cumval = dnet;
+	else if (Interval() == inDaily) {
+		for (i=0; i<BarCount; ++i) {
+			// printf("" + i + ": " + net[i] + ", mask: " + mask[i] + "\n");
+			if (IsEmpty(dnet[i]))
+				continue;
+			if (IsEmpty(mask[i])) {
+				dnet[i] = 0;
+			} else if (i==0 || mask[i] != mask[i-1] || (mask[i] && IsEmpty(mask[i-1]))) {
+				// net[i] = net[i];
+				if (i != 0 && IsEmpty(dnet[i-1]))
+					net[i-1] = 0;
+			} else {
+				dnet[i] = 0;
+			}
+		}
+		cumval = Cum(dnet);
+	} else {
+		cumval = Cum(dnet);
+		stAlert("Error: Interval greater than daily is not supported!");
+	}
+	
+	return cumval;
+}
+
+//
+// Get number of brokers involved
+//
+function stBdGetBrokerCount()
+{
+	global stBdTopBrokers, stBdBrokerCnt;
+	return stBdBrokerCnt;
+}
+
+//
+// Get the name of the top buyer
+//
+function stBdGetTopBuyerName(index)
+{
+	global stBdTopBrokers, stBdBrokerCnt;
+	return StrExtract(stBdTopBrokers, index);
+}
+
+//
+// Get the name of the specified top seller
+//
+function stBdGetTopSellerName(index)
+{
+	global stBdTopBrokers, stBdBrokerCnt;
+	return StrExtract(stBdTopBrokers, stBdBrokerCnt-index-1);
+}
+
+//
+// Plot the specified broker's cummulative value
+//
+function stBdPlotBroker(brokerName, is_buyer, index)
+{
+	global stBdParamAbs;
+	
+	balance = stBdGetBrokerCumValue(brokerName);
+	
+	if (is_buyer) {
+		color = stBdBuyerColors[index];
+		style = styleLine;
+	} else {
+		color = stBdSellerColors[index];
+		style = styleDashed;
+		
+		if (stBdParamAbs) {
+			balance = 0 - balance;
+		} 
+	}
+	
+	Plot(balance, brokerName, color, style | styleThick | styleNoLabel, Null, Null, 0, 5);
+	PlotText( brokerName, BarCount-4-index, balance[BarCount-4-index], GetChartBkColor(), color, 0);
+	x = LastValue( BarIndex() ) + 1;
+    y = LastValue( balance );
+    fontsize = 10;
+    PlotTextSetFont( brokerName, "Arial", fontsize, x, y, GetChartBkColor(), color, -fontsize/2 );
+}
+
+//
+// Plot the specified top buyer
+//
+function stBdPlotBuyer(index)
+{
+	stBdPlotBroker(stBdGetTopBuyerName(index), True, index);
+}
+
+//
+// Plot the specified top seller
+//
+function stBdPlotSeller(index)
+{
+	seller = stBdGetTopSellerName(index);
+	stBdPlotBroker(seller, False, index);
+}
+

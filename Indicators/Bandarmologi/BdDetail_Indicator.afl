@@ -29,4 +29,4 @@
  *  - 
  */
 
-#include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow_Ratio.afl>
+#include_once <..\..\quant.id\AFL\Bandarmologi\Bandarmologi_Detail.afl>

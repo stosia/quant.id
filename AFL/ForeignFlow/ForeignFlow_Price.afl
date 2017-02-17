@@ -1,6 +1,8 @@
 /* 
  * Copyright (C)2017 PT. Stosia Teknologi Investasi
  *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
  * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
  * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
  * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
@@ -35,7 +37,7 @@ stSetBackgroundSubsubtitle("© 2017 quant.id");
 //
 _SECTION_BEGIN("Price");
 	SetChartOptions(0,chartShowArrows|chartShowDates);
-	_N(Title = StrFormat("© 2017 quant.id -- {{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
+	_N(Title = StrFormat("©2017 quant.id -- {{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
 						  O, H, L, C, SelectedValue( ROC( C, 1 )) ));
 	Plot( C, "Close", colorDefault, styleNoTitle | GetPriceStyle() ); 
 _SECTION_END();
