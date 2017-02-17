@@ -58,6 +58,89 @@ stBdSellerColors[4] = colorDarkRed;
 stBdSellerColors[5] = colorPink;
 
 //
+// Get retail transaction value for each given interval
+//
+function stBdGetRetailNetIntervalValue()
+{
+	stConnectDatabase();
+	
+	if (Interval() < inDaily)
+		colname = "int_net_value";
+	else if (Interval() == inDaily)
+		colname = "day_net_value";
+	else {
+		colname = "day_net_value";
+		stAlert("Error: interval greater than daily is not supported yet");
+	}
+	
+	sql = " SELECT SUM(" + colname + ") int_value, dtime \n" + 
+	      " FROM v_adj_intraday_broker2 \n" + 
+	      " WHERE nationality = 'A' AND board = 'R' \n" + 
+	      "   AND ticker = '" + Name() + "' \n" + 
+	      "   AND broker IN ('YP', 'PD', 'NI', 'KK') \n" + 
+	      " GROUP BY dtime ORDER BY dtime ASC\n";
+	  
+	printf("Retail SQL:\n" + sql + "\n");
+	rnet = odbcGetArraySQL(sql) / MILYAR;
+	return rnet;
+}
+
+//
+// Get cummulative retail ownership value 
+//
+function stBdGetRetailCumIntervalValue()
+{
+	stConnectDatabase();
+	
+	if (Interval() > inDaily)
+		stAlert("Error: interval greater than daily is not supported yet");
+	}
+	
+	sql = "   SELECT @running_total := @running_total + SUM(int_net_value) AS cumulative_sum, \n" + 
+	      "          dtime \n" + 
+		  "     FROM v_adj_intraday_broker2 t \n" + 
+		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+		  "		 AND ticker = '" + Name() + "' \n" + 
+		  "		 AND broker IN ('YP', 'PD', 'NI', 'KK') \n" + 
+		  "	GROUP BY dtime \n" + 
+		  "	ORDER BY t.dtime ASC \n";
+
+	printf("Retail SQL:\n" + sql + "\n");
+	rnet = odbcGetArraySQL(sql) / MILYAR;
+	return rnet;
+}
+
+
+//
+// Get total transaction value for each given interval
+//
+function stBdGetIntervalValue()
+{
+	stConnectDatabase();
+	
+	if (Interval() < inDaily)
+		colname = "int_net_value";
+	else if (Interval() == inDaily)
+		colname = "day_net_value";
+	else {
+		colname = "day_net_value";
+		stAlert("Error: interval greater than daily is not supported yet");
+	}
+	
+	sql = " SELECT SUM(" + colname + ") int_value, dtime \n" + 
+	      " FROM v_adj_intraday_broker2 \n" + 
+	      " WHERE nationality = 'A' AND board = 'R' \n" + 
+	      "   AND ticker = '" + Name() + "' \n" + 
+	      "   AND " + colname + " > 0 \n" +
+	      " GROUP BY dtime ORDER BY dtime ASC\n";
+	 
+	printf("Total interval SQL:\n" + sql + "\n");
+	rnet = odbcGetArraySQL(sql) / MILYAR;
+	return rnet;
+}
+
+//
 // Calculate start date, that is "days" prior to last date
 //
 function stBdGetStartDate(days)
@@ -99,12 +182,11 @@ function stBdInit(is_master)
 	if (stBdStartDate < stBdStartBalanceDate)
 		_N( stBdStartDate = stBdStartBalanceDate );
 	
+	odbcDisplayErrors(True);
 	_N(sql = "call get_top_brokers('" + Name() + "', '" + stBdStartDate + "')");
 	//printf(sql + "\n");
 	
 	stBdTopBrokers = odbcGetValueSQL(sql);
-	if (StrLen(stBdTopBrokers) < 3)
-		stBdTopBrokers = "";
 	stBdBrokerCnt = floor((StrLen(stBdTopBrokers) + 1) / 3);
 
 	if (stBdBrokerCnt == 0) {
