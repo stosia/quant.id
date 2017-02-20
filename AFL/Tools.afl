@@ -281,3 +281,110 @@ function stLastDayValue(array)
 	return result;
 }
 
+//
+// Calculate average price from net value for each interval
+// Parameters:
+//  - netValue: array of net value (in Milyar)
+//
+function stGetAveragePriceFromNetValue(netVal)
+{
+	netVal = netVal * MILYAR;
+	
+	typ = stTypicalPrice();
+
+	dn = DateNum();
+	prev_dn = -1;
+	isIntraday = Interval() < inDaily;
+	
+	if (Interval() > inDaily) {
+		stAlert("Error: Interval greater than daily is not supported yet");
+	}
+
+	i = 0;
+	if (netVal[i] >= 0) {
+		portoValue[i] = netVal[i];
+		portoShares[i] = netVal[i] / typ[i];
+		portoAvg[i] = typ[i];
+	} else {
+		portoValue[i] = 0;
+		portoShares[i] = 0;
+		portoAvg[i] = Null;
+	}
+
+	for (i=1; i<BarCount; ++i) {
+		if (IsEmpty(netVal[i]) || (dn[i] != prev_dn && isIntraday)) {
+			// Reset on new day
+			if (netVal[i] >= 0) {
+				portoValue[i] = netVal[i];
+				portoShares[i] = netVal[i] / typ[i];
+				portoAvg[i] = typ[i];
+			} else {
+				portoValue[i] = 0;
+				portoShares[i] = 0;
+				portoAvg[i] = Null;
+			}
+			
+			prev_dn = dn[i];
+		} else {
+			portoValue[i] = portoValue[i-1] + netVal[i];
+			portoShares[i] = portoShares[i-1] + (netVal[i] / typ[i]);
+			
+			if (portoValue[i] < 0 || portoShares[i] < 0) {
+				// All sold
+				portoValue[i] = 0;
+				portoShares[i] = 0;
+				portoAvg[i] = Null;
+			} else if (i > 0 && netVal[i] < 0) {
+				// Sell operation doesn't change avg
+				portoAvg[i] = portoAvg[i-1];
+				// Adjust balance
+				portoValue[i] = portoShares[i] * portoAvg[i];
+			} else {
+				
+				portoAvg[i] = portoValue[i] / portoShares[i];
+			}
+		}
+	}
+	
+	/*	
+	Plot(netVal, "netVal", colorBlack, styleNoLine | styleOwnScale | styleNoLabel);
+	Plot(typ, "typ", colorBlack, styleNoLine | styleOwnScale | styleNoLabel);
+	Plot(portoValue, "portoValue", colorBlack, styleNoLine | styleOwnScale | styleNoLabel);
+	Plot(portoShares, "portoShares", colorBlack, styleNoLine | styleOwnScale | styleNoLabel);
+	Plot(portoAvg, "portoAvg", colorBlack, styleNoLine | styleOwnScale | styleNoLabel);
+	*/
+	return portoAvg;
+}
+
+//
+// Master chart signal that data is ready
+//
+function stMasterChartSignalReady(id)
+{
+	varname = "Chart" + id;
+	value = Name() + "," + NumToStr(Interval()) + "," + NumToStr(SelectedValue(DateNum()));
+	StaticVarSetText(varname, value);
+}
+
+//
+// Slave chart wait until master is ready
+//
+function stSlaveChartWaitReady(id)
+{
+	varname = "Chart" + id;
+	expected = Name() + "," + NumToStr(Interval()) + "," + NumToStr(SelectedValue(DateNum()));
+	i = 0;
+	while (True) {
+		value = StaticVarGetText(varname);
+		if (value == expected)
+			break;
+		
+		i += 1;
+		if (i > 10000 / 100) {
+			stAlert("Error: timeout waiting for master chart signal");
+			break;
+		}
+		
+		ThreadSleep(100);
+	}
+}

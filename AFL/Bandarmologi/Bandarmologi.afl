@@ -58,89 +58,6 @@ stBdSellerColors[4] = colorDarkRed;
 stBdSellerColors[5] = colorPink;
 
 //
-// Get retail transaction value for each given interval
-//
-function stBdGetRetailNetIntervalValue()
-{
-	stConnectDatabase();
-	
-	if (Interval() < inDaily)
-		colname = "int_net_value";
-	else if (Interval() == inDaily)
-		colname = "day_net_value";
-	else {
-		colname = "day_net_value";
-		stAlert("Error: interval greater than daily is not supported yet");
-	}
-	
-	sql = " SELECT SUM(" + colname + ") int_value, dtime \n" + 
-	      " FROM v_adj_intraday_broker2 \n" + 
-	      " WHERE nationality = 'A' AND board = 'R' \n" + 
-	      "   AND ticker = '" + Name() + "' \n" + 
-	      "   AND broker IN ('YP', 'PD', 'NI', 'KK') \n" + 
-	      " GROUP BY dtime ORDER BY dtime ASC\n";
-	  
-	printf("Retail SQL:\n" + sql + "\n");
-	rnet = odbcGetArraySQL(sql) / MILYAR;
-	return rnet;
-}
-
-//
-// Get cummulative retail ownership value 
-//
-function stBdGetRetailCumIntervalValue()
-{
-	stConnectDatabase();
-	
-	if (Interval() > inDaily)
-		stAlert("Error: interval greater than daily is not supported yet");
-	}
-	
-	sql = "   SELECT @running_total := @running_total + SUM(int_net_value) AS cumulative_sum, \n" + 
-	      "          dtime \n" + 
-		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0) r \n" + 
-		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
-		  "		 AND ticker = '" + Name() + "' \n" + 
-		  "		 AND broker IN ('YP', 'PD', 'NI', 'KK') \n" + 
-		  "	GROUP BY dtime \n" + 
-		  "	ORDER BY t.dtime ASC \n";
-
-	printf("Retail SQL:\n" + sql + "\n");
-	rnet = odbcGetArraySQL(sql) / MILYAR;
-	return rnet;
-}
-
-
-//
-// Get total transaction value for each given interval
-//
-function stBdGetIntervalValue()
-{
-	stConnectDatabase();
-	
-	if (Interval() < inDaily)
-		colname = "int_net_value";
-	else if (Interval() == inDaily)
-		colname = "day_net_value";
-	else {
-		colname = "day_net_value";
-		stAlert("Error: interval greater than daily is not supported yet");
-	}
-	
-	sql = " SELECT SUM(" + colname + ") int_value, dtime \n" + 
-	      " FROM v_adj_intraday_broker2 \n" + 
-	      " WHERE nationality = 'A' AND board = 'R' \n" + 
-	      "   AND ticker = '" + Name() + "' \n" + 
-	      "   AND " + colname + " > 0 \n" +
-	      " GROUP BY dtime ORDER BY dtime ASC\n";
-	 
-	printf("Total interval SQL:\n" + sql + "\n");
-	rnet = odbcGetArraySQL(sql) / MILYAR;
-	return rnet;
-}
-
-//
 // Calculate start date, that is "days" prior to last date
 //
 function stBdGetStartDate(days)
@@ -160,37 +77,56 @@ function stBdInit(is_master)
 	global stBdTopBrokers, stBdBrokerCnt, stBdStartDate, stBdParamDays, 
 		   stBdParamTopCount, stBdParamAbs, stBdStartBalanceDate;
 	
+	stConnectDatabase();
+	
 	if (is_master) {
 		stBdParamDays = Param("Days", stBdParamDays, 0, 60);
 		stBdParamTopCount = Param("Brokers", stBdParamTopCount, 1, 5);
 		stBdParamAbs = ParamToggle("Absolute Value", "No|Yes", stBdParamAbs);
 		sb = ParamDate("Start Balance", stBdStartBalanceDate, 0);
 		_N( stBdStartBalanceDate = stDateNumToStr(sb) );
+
+		_N( stBdStartDate = stBdGetStartDate(stBdParamDays) );
+		if (stBdStartDate < stBdStartBalanceDate)
+			_N( stBdStartDate = stBdStartBalanceDate );
+		
+		odbcDisplayErrors(True);
+		_N(sql = "call get_top_brokers('" + Name() + "', '" + stBdStartDate + "')");
+		
+		stBdTopBrokers = odbcGetValueSQL(sql);
+		len = StrLen(stBdTopBrokers);
+		if (len < 3) {
+			stBdTopBrokers = "";
+			len = 0;
+		}
+		stBdBrokerCnt = floor((len + 1) / 3);
+
+		if (stBdBrokerCnt == 0) {
+			stAlert("Error: broker summary for " + Name() + " is not available");
+		}
 		
 		StaticVarSet("stBdParamDays", stBdParamDays);
 		StaticVarSet("stBdParamTopCount", stBdParamTopCount);
 		StaticVarSet("stBdParamAbs", stBdParamAbs);
 		StaticVarSetText("stBdStartBalanceDate", stBdStartBalanceDate);
+		
+		StaticVarSetText("stBdStartDate", stBdStartDate);
+		StaticVarSetText("stBdTopBrokers", stBdTopBrokers);
+		StaticVarSet("stBdBrokerCnt", stBdBrokerCnt);
+		
+		stMasterChartSignalReady("stBdInit");
+		
 	} else {
+		stSlaveChartWaitReady("stBdInit");
+
+		stBdStartDate = StaticVarGetText("stBdStartDate");
+		stBdTopBrokers = StaticVarGetText("stBdTopBrokers");
+		stBdBrokerCnt = StaticVarGet("stBdBrokerCnt");
+		
 		stBdParamDays = StaticVarGet("stBdParamDays");
 		stBdParamTopCount = StaticVarGet("stBdParamTopCount");
 		stBdParamAbs = StaticVarGet("stBdParamAbs");
 		_N( stBdStartBalanceDate = StaticVarGetText("stBdStartBalanceDate") );
-	}
-	
-	_N( stBdStartDate = stBdGetStartDate(stBdParamDays) );
-	if (stBdStartDate < stBdStartBalanceDate)
-		_N( stBdStartDate = stBdStartBalanceDate );
-	
-	odbcDisplayErrors(True);
-	_N(sql = "call get_top_brokers('" + Name() + "', '" + stBdStartDate + "')");
-	//printf(sql + "\n");
-	
-	stBdTopBrokers = odbcGetValueSQL(sql);
-	stBdBrokerCnt = floor((StrLen(stBdTopBrokers) + 1) / 3);
-
-	if (stBdBrokerCnt == 0) {
-		stAlert("Error: broker summary for " + Name() + " is not available");
 	}
 }
 
@@ -204,48 +140,161 @@ function stBdGetBrokerCumValue(broker_name)
 	_N(start_date_str = stBdStartBalanceDate);
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
-	}
-
-	if (Interval() == inDaily) {
-		_N( sql = " SELECT unix_timestamp(dtime), dtime FROM v_adj_intraday_broker2 " +
-			      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND " +
-			      "       dtime >= '" + start_date_str + " 00:00:00'" +
-			      " ORDER BY dtime Asc" );
-		mask = odbcGetArraySQL(sql);
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
 	}
 	
-	_N( sql = " SELECT day_net_value, dtime FROM v_adj_intraday_broker2 " +
-		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND " +
-		      "       dtime >= '" + start_date_str + " 00:00:00'" +
+	_N( sql = " SELECT @running_total := @running_total + int_net_value AS balance, \n" + 
+			  "        dtime \n" + 
+			  " FROM  v_adj_intraday_broker2 \n" +
+			  "	JOIN (SELECT @running_total := 0) r \n" + 
+		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
 		      " ORDER BY dtime Asc" );
 	
-	dnet = odbcGetArraySQL(sql) / MILYAR;
+	//printf("SQL: " + sql + "\n");
+	result = odbcGetArraySQL(sql) / MILYAR;
 	
-	if (Interval() < inDaily)
-		cumval = dnet;
-	else if (Interval() == inDaily) {
-		for (i=0; i<BarCount; ++i) {
-			// printf("" + i + ": " + net[i] + ", mask: " + mask[i] + "\n");
-			if (IsEmpty(dnet[i]))
-				continue;
-			if (IsEmpty(mask[i])) {
-				dnet[i] = 0;
-			} else if (i==0 || mask[i] != mask[i-1] || (mask[i] && IsEmpty(mask[i-1]))) {
-				// net[i] = net[i];
-				if (i != 0 && IsEmpty(dnet[i-1]))
-					net[i-1] = 0;
+	return result;
+}
+
+//
+// Get broker average price based on buy volume, buy avg, and sell volume.
+// This also calculates broker's profit/loss and save it to global variable stBrokerProfit
+//
+function stBdGetBrokerAveragePrice(broker_name)
+{
+	global stBrokerProfit;
+	
+	stConnectDatabase();
+
+	isIntraday = Interval() < inDaily;
+	if (isIntraday) {
+		_N(col = "int");
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+		_N(col = "day");
+	}
+
+	_N( sql = " SELECT " + col + "_buy_vol, dtime \n" + 
+			  " FROM  v_adj_intraday_broker \n" +
+		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
+		      " ORDER BY dtime Asc" );
+	buyShares = odbcGetArraySQL(sql);
+	
+	_N( sql = " SELECT " + col + "_buy_value, dtime \n" + 
+			  " FROM  v_adj_intraday_broker \n" +
+		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
+		      " ORDER BY dtime Asc" );
+	buyValue = odbcGetArraySQL(sql);
+	buyAvg = IIf(buyShares >= 1, buyValue / buyShares, 0);
+	
+	_N( sql = " SELECT " + col + "_sell_vol, dtime \n" + 
+			  " FROM  v_adj_intraday_broker \n" +
+		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
+		      " ORDER BY dtime Asc" );
+	sellShares = odbcGetArraySQL(sql);
+
+	_N( sql = " SELECT " + col + "_sell_value, dtime \n" + 
+			  " FROM  v_adj_intraday_broker \n" +
+		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
+		      " ORDER BY dtime Asc" );
+	sellValue = odbcGetArraySQL(sql);
+	sellAvg = IIf(sellShares >= 1, sellValue / sellShares, 0);
+	
+	netShares = buyShares - sellShares;
+	
+	dn = DateNum();
+	prev_dn = -1;
+	
+	i = 0;
+	if (IsEmpty(netShares[i])) {
+		portoShares[i] = 0;
+		portoAvg[i] = Null;
+		stBrokerProfit[i] = Null;
+		branch[i] = 10;
+	} else if (netShares[i] >= 0) {
+		portoShares[i] = netShares[i];
+		portoAvg[i] = buyAvg[i];
+		stBrokerProfit[i] = netShares[i] * (sellAvg[i] - buyAvg[i]);
+		branch[i] = 20;
+	} else {
+		portoShares[i] = 0;
+		portoAvg[i] = Null;
+		stBrokerProfit[i] = sellShares[i] * (sellAvg[i] - buyAvg[i]);
+		branch[i] = 30;
+	}
+
+	for (i=1; i<BarCount; ++i) {
+		if (IsEmpty(netShares[i])) {
+			branch[i] = 40;
+			portoShares[i] = 0;
+			portoAvg[i] = Null;
+			stBrokerProfit[i] = stBrokerProfit[i-1];
+		} else if (dn[i] != prev_dn && isIntraday) {
+			branch[i] = 50;
+			// Reset on new day
+			if (netShares[i] >= 0) {
+				branch[i] = 53;
+				portoShares[i] = netShares[i];
+				portoAvg[i] = buyAvg[i];
+				stBrokerProfit[i] = netShares[i] * (sellAvg[i] - buyAvg[i]);
 			} else {
-				dnet[i] = 0;
+				branch[i] = 56;
+				portoShares[i] = 0;
+				portoAvg[i] = Null;
+				stBrokerProfit[i] = sellShares[i] * (sellAvg[i] - buyAvg[i]);
+			}
+			prev_dn = dn[i];
+			
+		} else {
+			branch[i] = 60;
+			portoShares[i] = portoShares[i-1] + buyShares[i];
+			if (portoShares[i]) {
+				if (IsEmpty(portoAvg[i-1])) {
+					portoAvg[i] = buyAvg[i];
+					branch[i] = 62;
+				} else {
+					branch[i] = 64;
+					portoAvg[i] = ((portoShares[i-1] * portoAvg[i-1]) + (buyShares[i] * buyAvg[i])) / portoShares[i];
+				}
+			} else {
+				branch[i] = 66;
+				portoAvg[i] = PortoAvg[i-1];
+			}
+			
+			if (sellShares[i] >= portoShares[i]) {
+				// All sold
+				stBrokerProfit[i] = IIf(IsEmpty(stBrokerProfit[i-1]), 0, stBrokerProfit[i-1]) + (portoShares[i] * (sellAvg[i] - portoAvg[i]));
+				portoShares[i] = 0;
+			}  else {
+				stBrokerProfit[i] = IIf(IsEmpty(stBrokerProfit[i-1]), 0, stBrokerProfit[i-1]) + (sellShares[i] * (sellAvg[i] - portoAvg[i]));
+				portoShares[i] -= sellShares[i];
 			}
 		}
-		cumval = Cum(dnet);
-	} else {
-		cumval = Cum(dnet);
-		stAlert("Error: Interval greater than daily is not supported!");
 	}
 	
-	return cumval;
+	if (Status("ActionEx") == actionExplore) {
+		//AddColumn(BarIndex(), "i", 1.0);
+		//AddColumn(branch, "branch", 1.0);
+		AddColumn(buyShares, "buyShares", 1.0);
+		AddColumn(sellShares, "sellShares", 1.0);
+		AddColumn(buyShares - sellShares, "netShares", 1.0);
+		
+		AddColumn(buyAvg, "buyAvg", 1.2);
+		AddColumn(sellAvg, "sellAvg", 1.2);
+		
+		AddColumn(portoShares, "portoShares", 1.0);
+		AddColumn(portoAvg, "portoAvg", 1.2);
+		AddColumn(stBrokerProfit, "stBrokerProfit", 1.0);
+	}
+	return portoAvg;
 }
+
 
 //
 // Get number of brokers involved
@@ -308,7 +357,11 @@ function stBdPlotBroker(brokerName, is_buyer, index)
 //
 function stBdPlotBuyer(index)
 {
-	stBdPlotBroker(stBdGetTopBuyerName(index), True, index);
+	global stBdBrokerCnt;
+	
+	if (index < stBdBrokerCnt) {
+		stBdPlotBroker(stBdGetTopBuyerName(index), True, index);
+	}
 }
 
 //
@@ -316,7 +369,9 @@ function stBdPlotBuyer(index)
 //
 function stBdPlotSeller(index)
 {
-	seller = stBdGetTopSellerName(index);
-	stBdPlotBroker(seller, False, index);
+	if (index < stBdBrokerCnt) {
+		seller = stBdGetTopSellerName(index);
+		stBdPlotBroker(seller, False, index);
+	}
 }
 

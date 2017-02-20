@@ -49,7 +49,7 @@ _SECTION_BEGIN("Bandarmologi Detail");
 
 	// Background text
 	stSetBackgroundTitle(Name());
-	stSetBackgroundSubtitle("Bandarmologi " + stBdParamTopCount + "/" +  stBdParamDays);
+	stSetBackgroundSubtitle("Bandarmologi " + stBdParamDays + "/" + stBdParamTopCount);
 	stSetBackgroundSubsubtitle("© 2017 quant.id");
 	
 	// Y-axis

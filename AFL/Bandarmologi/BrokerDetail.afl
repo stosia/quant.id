@@ -1,0 +1,110 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
+ * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
+ * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
+ * produk yang dijual secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ */
+
+#include_once <..\..\quant.id\AFL\Bandarmologi\Bandarmologi.afl>
+
+HighestHigh = HighestVisibleValue(High) * 1.02;
+LowestLow = LowestVisibleValue(Low) * 0.98;
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("©2017 quant.id -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
+
+
+function PlotBroker(broker_name, color)
+{
+	balance = stBdGetBrokerCumValue(broker_name);
+
+	Plot(Prec(balance, 1), broker_name, 
+		 ColorBlend(color, GetChartBkColor(), 0.3 ), 
+		 styleLine | styleThick | styleNoLabel, 
+		 Null, Null, 1, 5);
+
+	PlotText( broker_name, BarCount-5, balance[BarCount-5], colorWhite, color);
+	
+	avgPrice = stBdGetBrokerAveragePrice(broker_name);
+	brokerProfit = stBrokerProfit / MILYAR;
+
+	Plot(Prec(brokerProfit, 1), broker_name+"-P/L", 
+		 ColorBlend(color, GetChartBkColor(), 0.3 ), 
+		 styleLine | styleNoLabel, 
+		 Null, Null, 0, 1);
+	
+	Plot( avgPrice, 
+		  broker_name + "-Avg",  
+		  color, 
+		  styleDashed | styleOwnScale | styleNoLabel, 
+		  LowestLow, 
+		  HighestHigh, 
+		  0, 
+		  1); 
+
+	y = Status("pxheight") - (Status("pxheight") * ((avgPrice[BarCount-1] - LowestLow) / (HighestHigh - LowestLow)));
+	x = Status("pxwidth") - 50;
+	
+	GfxSetOverlayMode(1);
+	GfxSelectFont("Arial", 10);
+	GfxSetTextAlign( 6 );// center alignment
+	GfxSetTextColor(colorWhite);
+	GfxSetBkColor(color);
+	GfxSetBkMode(2); // opaque
+	GfxTextOut( broker_name + "-Avg", x,  y);
+}
+
+_SECTION_BEGIN("Price");
+	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.6)));
+	
+	Plot( C, 
+		  "Close",  
+		  IIf(C >= Open, ColorBlend(GetChartBkColor(), colorGreen, 0.6), ColorBlend(GetChartBkColor(), colorBrown, 0.6)), 
+		  GetPriceStyle() | styleOwnScale, 
+		  LowestLow, 
+		  HighestHigh, 
+		  0, 
+		  1); 
+_SECTION_END();
+
+_SECTION_BEGIN("Broker Detail");
+	brokers = ParamStr("Brokers (comma separated)", "");
+	if (brokers == "") {
+		stSetBackgroundSubsubtitle("Pls add brokers from parameters");
+	}
+	
+	//stBdInit(False);
+
+	stSetBackgroundTitle(Name());
+	stSetBackgroundSubtitle("Broker Detail: " + brokers);
+	stSetBackgroundSubsubtitle("© 2017 quant.id");
+	
+	Plot(0, "0", colorGrey50, styleLine | styleNoTitle | styleNoLabel);
+	
+	i = 0;
+	while (i < 6) {
+		_N(broker = StrExtract(brokers, i));
+		if (broker == "")
+			break;
+		PlotBroker(broker, stBdBuyerColors[i]);
+		i += 1;
+	}
+
+_SECTION_END();
+

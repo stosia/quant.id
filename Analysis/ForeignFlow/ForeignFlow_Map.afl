@@ -71,11 +71,6 @@ if (BarCount > 0) {
 		endIndex = BarCount - 1;
 	}
 
-	// Add text column for debugging
-	dt = DateTime();
-	comment = "From " + DateTimeToStr(dt[startIndex],3) + " to " + DateTimeToStr(dt[endIndex], 3);
-	AddTextColumn(comment, "Comment");
-
 	// Foreign balance
 	ffBalance = Cum(ffDayNetValue);
 
@@ -113,6 +108,15 @@ if (BarCount > 0) {
 
 	// The dot color is the combination of flow color and return color
 	clr = (flowClr + retClr) / 2;
+	
+	// Columns
+	AddColumn(NetFlow, "Net Flow (B)");
+	AddColumn(Ret, "Return (%)");
+
+	// Add text column for debugging
+	dt = DateTime();
+	comment = "From " + DateTimeToStr(dt[startIndex],3) + " to " + DateTimeToStr(dt[endIndex], 3);
+	AddTextColumn(comment, "Comment");
 	
 	// Plot the point
 	XYChartAddPoint( "Return/Foreign Flow", Name(), Netflow[endIndex], Ret[endIndex], clr, clr); 

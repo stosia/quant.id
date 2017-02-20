@@ -29,12 +29,12 @@
  *  - 
  */
 
-#include_once <..\..\quant.id\AFL\Bandarmologi\Bandarmologi.afl>
+#include_once <..\..\quant.id\AFL\Retailogi\Retailogi.afl>
 #include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 #include_once <..\..\quant.id\AFL\Common.afl>
 
 stSetBackgroundTitle(Name());
-stSetBackgroundSubtitle("Bdmologi Summary");
+stSetBackgroundSubtitle("Retailogi");
 stSetBackgroundSubsubtitle("© 2017 quant.id");
 
 
@@ -52,26 +52,16 @@ _SECTION_END();
 
 _SECTION_BEGIN("Bandarmologi Summary");
 	// Retail intervalue and its cummulative value
-	rtlIntVal = stBdGetRetailNetIntervalValue();
-	rtlCum = Cum(rtlIntVal);
+	rtlCum = stRtGetRetailCumValue();
 	
-	// Retail cum value
-	rtlCum2 = stBdGetRetailCumIntervalValue();
-	
-	// Total transaction value
-	//totIntVal = stBdGetIntervalValue();
-	totIntVal = stGetIntervalValue();
-	totCum = Cum(totIntVal);
-	
-	// Institutional is total minus retail
-	instIntVal = totIntVal - rtlIntVal;
-	instCum = Cum(instIntVal);
+	// Institutional 
+	instCum = stRtGetNonRetailCumValue();
 	
 	// Foreign
 	ffBalance = stGetFFBalance();
 	
-	//Plot(Prec(instCum,1), "Bandar", colorBlue, styleLine | styleThick);
-	Plot(Prec(ffBalance,1), "Foreign", colorOrange, styleLine | styleThick);
-	Plot(Prec(rtlCum,1), "Retail", colorGreen, styleDashed);
-	Plot(Prec(rtlCum2,1), "Retail", colorGreen, styleLine | styleThick);
+	Plot(Prec(instCum,1), "Bandar", colorBlue, styleLine | styleThick, Null, Null, 0, 5);
+	Plot(Prec(ffBalance,1), "Foreign", colorOrange, styleLine | styleThick, Null, Null, 0, 5);
+	Plot(Prec(rtlCum,1), "Retail", colorGreen, styleLine | styleThick, Null, Null, 0, 5);
 _SECTION_END();
+
