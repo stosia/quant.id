@@ -27,7 +27,7 @@ HighestHigh = HighestVisibleValue(High) * 1.02;
 LowestLow = LowestVisibleValue(Low) * 0.98;
 
 SetChartOptions(0,chartShowArrows|chartShowDates);
-_N(Title = StrFormat("©2017 quant.id -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
+_N(Title = StrFormat("Quant.id ©2017 Stosia -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
 
 
 function PlotBroker(broker_name, color)
@@ -37,7 +37,7 @@ function PlotBroker(broker_name, color)
 	Plot(Prec(balance, 1), broker_name, 
 		 ColorBlend(color, GetChartBkColor(), 0.3 ), 
 		 styleLine | styleThick | styleNoLabel, 
-		 Null, Null, 1, 5);
+		 Null, Null, 0, 5);
 
 	PlotText( broker_name, BarCount-5, balance[BarCount-5], colorWhite, color);
 	
@@ -85,15 +85,16 @@ _SECTION_END();
 
 _SECTION_BEGIN("Broker Detail");
 	brokers = ParamStr("Brokers (comma separated)", "");
-	if (brokers == "") {
-		stSetBackgroundSubsubtitle("Pls add brokers from parameters");
-	}
 	
 	//stBdInit(False);
 
 	stSetBackgroundTitle(Name());
 	stSetBackgroundSubtitle("Broker Detail: " + brokers);
-	stSetBackgroundSubsubtitle("© 2017 quant.id");
+	if (brokers == "") {
+		stSetBackgroundSubsubtitle("Pls add brokers from parameters");
+	} else {
+		stSetBackgroundSubsubtitle("Quant.id ©2017 Stosia");
+	}
 	
 	Plot(0, "0", colorGrey50, styleLine | styleNoTitle | styleNoLabel);
 	

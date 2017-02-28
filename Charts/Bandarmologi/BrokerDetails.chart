@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+	<Sheet>
+		<Name>Broker details</Name>
+		<Pane>
+			<ChartID>1223</ChartID>
+			<PercentHeight>100</PercentHeight>
+			<Formula>/* \r\n * Copyright (C)2017 PT. Stosia Teknologi Investasi\r\n *\r\n * This file is licensed under  GNU GPL (General Public License) version 3.\r\n *\r\n * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya\r\n * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis\r\n * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode\r\n * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.\r\n * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.\r\n *\r\n * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari\r\n * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau\r\n * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel\r\n * produk yang dijual secara komersial, karena hal itu tidak etis.\r\n *\r\n * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil\r\n * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan\r\n * bersama file ini.\r\n *\r\n * Author: Benny Prijono &lt;benny@stosia.com&gt;\r\n */\r\n\r\n#include_once &lt;..\\..\\quant.id\\AFL\\Bandarmologi\\Bandarmologi.afl&gt;\r\n\r\nHighestHigh = HighestVisibleValue(High) * 1.02;\r\nLowestLow = LowestVisibleValue(Low) * 0.98;\r\n\r\nSetChartOptions(0,chartShowArrows|chartShowDates);\r\n_N(Title = StrFormat("©2017 quant.id -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));\r\n\r\n\r\nfunction PlotBroker(broker_name, color)\r\n{\r\n\tbalance = stBdGetBrokerCumValue(broker_name);\r\n\r\n\tPlot(Prec(balance, 1), broker_name, \r\n\t\t ColorBlend(color, GetChartBkColor(), 0.3 ), \r\n\t\t styleLine | styleThick | styleNoLabel, \r\n\t\t Null, Null, 0, 5);\r\n\r\n\tPlotText( broker_name, BarCount-5, balance[BarCount-5], colorWhite, color);\r\n\t\r\n\tavgPrice = stBdGetBrokerAveragePrice(broker_name);\r\n\tbrokerProfit = stBrokerProfit / MILYAR;\r\n\r\n\tPlot(Prec(brokerProfit, 1), broker_name+"-P/L", \r\n\t\t ColorBlend(color, GetChartBkColor(), 0.3 ), \r\n\t\t styleLine | styleNoLabel, \r\n\t\t Null, Null, 0, 1);\r\n\t\r\n\tPlot( avgPrice, \r\n\t\t  broker_name + "-Avg",  \r\n\t\t  color, \r\n\t\t  styleDashed | styleOwnScale | styleNoLabel, \r\n\t\t  LowestLow, \r\n\t\t  HighestHigh, \r\n\t\t  0, \r\n\t\t  1); \r\n\r\n\ty = Status("pxheight") - (Status("pxheight") * ((avgPrice[BarCount-1] - LowestLow) / (HighestHigh - LowestLow)));\r\n\tx = Status("pxwidth") - 50;\r\n\t\r\n\tGfxSetOverlayMode(1);\r\n\tGfxSelectFont("Arial", 10);\r\n\tGfxSetTextAlign( 6 );// center alignment\r\n\tGfxSetTextColor(colorWhite);\r\n\tGfxSetBkColor(color);\r\n\tGfxSetBkMode(2); // opaque\r\n\tGfxTextOut( broker_name + "-Avg", x,  y);\r\n}\r\n\r\n_SECTION_BEGIN("Price");\r\n\tSetBarFillColor(IIf(C &gt;= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.6)));\r\n\t\r\n\tPlot( C, \r\n\t\t  "Close",  \r\n\t\t  IIf(C &gt;= Open, ColorBlend(GetChartBkColor(), colorGreen, 0.6), ColorBlend(GetChartBkColor(), colorBrown, 0.6)), \r\n\t\t  GetPriceStyle() | styleOwnScale, \r\n\t\t  LowestLow, \r\n\t\t  HighestHigh, \r\n\t\t  0, \r\n\t\t  1); \r\n_SECTION_END();\r\n\r\n_SECTION_BEGIN("Broker Detail");\r\n\tbrokers = ParamStr("Brokers (comma separated)", "");\r\n\t\r\n\t//stBdInit(False);\r\n\r\n\tstSetBackgroundTitle(Name());\r\n\tstSetBackgroundSubtitle("Broker Detail: " + brokers);\r\n\tif (brokers == "") {\r\n\t\tstSetBackgroundSubsubtitle("Pls add brokers from parameters");\r\n\t} else {\r\n\t\tstSetBackgroundSubsubtitle("© 2017 quant.id");\r\n\t}\r\n\t\r\n\tPlot(0, "0", colorGrey50, styleLine | styleNoTitle | styleNoLabel);\r\n\t\r\n\ti = 0;\r\n\twhile (i &lt; 6) {\r\n\t\t_N(broker = StrExtract(brokers, i));\r\n\t\tif (broker == "")\r\n\t\t\tbreak;\r\n\t\tPlotBroker(broker, stBdBuyerColors[i]);\r\n\t\ti += 1;\r\n\t}\r\n\r\n_SECTION_END();\r\n\r\n</Formula>
+			<FilePath>Formulas\\quant.id\\AFL\\Bandarmologi\\BrokerDetail.afl</FilePath>
+			<Flags>256</Flags>
+			<MoreFlags>1073741835</MoreFlags>
+			<Min>-41.166</Min>
+			<Max>31.997</Max>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 2</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 3</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 4</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 5</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 6</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 7</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Sheet>
+		<Name>Sheet 8</Name>
+		<Pane>
+			<ChartID>0</ChartID>
+			<PercentHeight>50</PercentHeight>
+		</Pane>
+	</Sheet>
+	<Includes>
+		<File>
+			<Path>_once &lt;..\\..\\quant.id\\AFL\\Bandarmologi\\Bandarmologi.afl&gt;</Path>
+			<Formula>
+			</Formula>
+		</File>
+	</Includes>
+</Window>

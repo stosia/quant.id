@@ -33,14 +33,15 @@ function stConnectDatabase()
 //
 function stSetBackgroundTitle( txt )
 {
-	titleFontSize = 3;
+	height = Status("pxheight");
+	titleFontHeight = height/3;
 	
 	GfxSetOverlayMode(1);
-	GfxSelectFont("Tahoma", Status("pxheight")/titleFontSize );
+	GfxSelectFont("Tahoma", titleFontHeight );
 	GfxSetTextAlign( 6 );// center alignment
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
-	GfxTextOut( txt, Status("pxwidth")/2, Status("pxheight")/50 );
+	GfxTextOut( txt, Status("pxwidth")/2, height/50 - titleFontHeight/8);
 }
 
 //

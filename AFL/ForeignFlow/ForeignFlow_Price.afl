@@ -30,14 +30,14 @@ SetBarsRequired(sbrAll);
 
 stSetBackgroundTitle(Name());
 stSetBackgroundSubtitle("Foreign Flow System");
-stSetBackgroundSubsubtitle("© 2017 quant.id");
+stSetBackgroundSubsubtitle("Quant.id ©2017 Stosia");
 
 //
 // Price candlesticks
 //
 _SECTION_BEGIN("Price");
 	SetChartOptions(0,chartShowArrows|chartShowDates);
-	_N(Title = StrFormat("©2017 quant.id -- {{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
+	_N(Title = StrFormat("Quant.id ©2017 Stosia -- {{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
 						  O, H, L, C, SelectedValue( ROC( C, 1 )) ));
 	Plot( C, "Close", colorDefault, styleNoTitle | GetPriceStyle() ); 
 _SECTION_END();
@@ -46,7 +46,7 @@ _SECTION_END();
 //
 // Total transaction value
 //
-_SECTION_BEGIN("Value (B)");
+_SECTION_BEGIN("Val(B)");
 	intervalValue = stGetIntervalValue();
 	
 	maxIntervalValue = Max(HighestVisibleValue(intervalValue) * 2, 1);
@@ -67,7 +67,7 @@ _SECTION_END();
 //
 // Foreign transaction value, drawn over the transaction value above
 //
-_SECTION_BEGIN("Foreign Value (B)");
+_SECTION_BEGIN("Fg Val(B)");
 	ffIntervalValue = stGetFFIntervalValue();
 	
 	Plot( abs(ffIntervalValue), 
@@ -119,7 +119,7 @@ _SECTION_NAME();
 //
 // Foreign accummulation (balance)
 //
-_SECTION_BEGIN("Foreign Balance (B)");
+_SECTION_BEGIN("Fg Cum(B)");
 	ffBalance = stGetFFBalanceFromInterval(ffIntervalValue);
 	
 	ffBalanceMin = LowestVisibleValue(ffBalance);
@@ -138,7 +138,7 @@ _SECTION_END();
 //
 // Foreign average price
 //
-_SECTION_BEGIN("Foreign Average");
+_SECTION_BEGIN("Fg Avg");
 	ffAvg = stGetFFAverageFromIntervalNet(ffIntervalValue);
 	Plot( ffAvg, "Foreign Avg", colorGreen, styleDashed | styleThick | styleNoLabel); 
 _SECTION_END();
@@ -155,8 +155,8 @@ _SECTION_BEGIN("Foreign MA");
 	ffMA2 = MA(ffBalance, ffMAPeriod2);
 	
 	if (ffMaEnabled) {
-		Plot( ffMA1, "fMA" + ffMAPeriod1, colorOrange, styleLine | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
-		Plot( ffMA2, "fMA" + ffMAPeriod2, colorOrange, styleDashed | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
+		Plot( ffMA1, "Fg MA" + ffMAPeriod1, colorOrange, styleLine | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
+		Plot( ffMA2, "Fg MA" + ffMAPeriod2, colorOrange, styleDashed | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
 	}
 _SECTION_END();
 

@@ -26,7 +26,8 @@
 
 _SECTION_BEGIN("Foreign Net");
 	stSetBackgroundTitle(_SECTION_NAME());
-
+	stSetBackgroundSubtitle("Quant.id ©2017 Stosia");
+	
 	B = stGetFFIntervalBuyValue();
 	S = stGetFFIntervalSellValue();
 

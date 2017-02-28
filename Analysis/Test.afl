@@ -1,6 +1,2 @@
-#include_once <..\..\quant.id\AFL\Bandarmologi\BrokerDetail.afl>
-
 Filter = 1;
-_N(broker = ParamStr("Broker", "YP"));
-stBdGetBrokerAveragePrice(broker);
-
+AddColumn(C, "C");

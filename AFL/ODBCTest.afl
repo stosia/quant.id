@@ -1,0 +1,45 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
+ * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
+ * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
+ * produk yang dijual secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ */
+ 
+#include_once <..\..\quant.id\AFL\Tools.afl>
+
+
+stSetBackgroundTitle(Name());
+stSetBackgroundSubtitle("The Quant.id Project");
+stSetBackgroundSubsubtitle("© 2017 Stosia");
+
+//
+// Price candlesticks
+//
+_SECTION_BEGIN("Price");
+	SetChartOptions(0,chartShowArrows|chartShowDates);
+	stConnectDatabase();
+	adjClose = odbcGetArraySQL(" SELECT close, dtime " + 
+							 " FROM v_adj_intraday_foreign " +
+							 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+								 	
+	_N(Title = StrFormat("©2017 quant.id -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
+	Plot( adjClose, "Adj Close", colorBlack, styleLine); 
+_SECTION_END();
+
+
