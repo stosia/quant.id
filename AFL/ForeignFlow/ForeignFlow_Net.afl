@@ -24,12 +24,15 @@
 #include_once <..\..\quant.id\AFL\Common.afl>
 #include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 
+_N(chartId = "ForeignFlow01");
+stSlaveChartWaitReady(chartId);
+
 _SECTION_BEGIN("Foreign Net");
 	stSetBackgroundTitle(_SECTION_NAME());
 	stSetBackgroundSubtitle("Quant.id ©2017 Stosia");
 	
-	B = stGetFFIntervalBuyValue();
-	S = stGetFFIntervalSellValue();
+	B = StaticVarGet("ffIntervalBuyValue");
+	S = StaticVarGet("ffIntervalSellValue");
 
 	bcolor = ColorBlend( colorBlueGrey, GetChartBkColor(), 0.5  );
 	scolor = ColorBlend( colorLightOrange, GetChartBkColor(), 0.5  );

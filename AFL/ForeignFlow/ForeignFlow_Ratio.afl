@@ -24,6 +24,9 @@
 #include_once <..\..\quant.id\AFL\Common.afl>
 #include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 
+_N(chartId = "ForeignFlow01");
+stSlaveChartWaitReady(chartId);
+
 //
 // Foreign Ratio adalah ratio nilai transaksi asing terhadap total nilai
 // transaksi saham tersebut. Semakin besar ratio, semakin besar dominasi 
@@ -33,9 +36,10 @@ _SECTION_BEGIN("Foreign Ratio");
 	stSetBackgroundTitle(_SECTION_NAME());
 	stSetBackgroundSubtitle("Quant.id ©2017 Stosia");
 	
-	intValue = stGetIntervalValue();
-	ffIntBuyValue = stGetFFIntervalBuyValue();
-	ffIntSellValue = stGetFFIntervalSellValue();
+	intValue = StaticVarGet("intervalValue");
+	
+	ffIntBuyValue = StaticVarGet("ffIntervalBuyValue");
+	ffIntSellValue = StaticVarGet("ffIntervalSellValue");
 
 	ffIntValue = Max(ffIntBuyValue, ffIntSellValue);
 

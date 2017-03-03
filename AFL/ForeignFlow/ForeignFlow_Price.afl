@@ -21,8 +21,6 @@
  * Author: Benny Prijono <benny@stosia.com>
  */
  
-SetBarsRequired(sbrAll);
-
 #include_once <..\..\quant.id\AFL\Tools.afl>
 #include_once <..\..\quant.id\AFL\Common.afl>
 #include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow.afl>
@@ -31,6 +29,8 @@ SetBarsRequired(sbrAll);
 stSetBackgroundTitle(Name());
 stSetBackgroundSubtitle("Foreign Flow System");
 stSetBackgroundSubsubtitle("Quant.id ©2017 Stosia");
+
+_N(chartId = "ForeignFlow01");
 
 //
 // Price candlesticks
@@ -48,6 +48,7 @@ _SECTION_END();
 //
 _SECTION_BEGIN("Val(B)");
 	intervalValue = stGetIntervalValue();
+	StaticVarSet("intervalValue", intervalValue);
 	
 	maxIntervalValue = Max(HighestVisibleValue(intervalValue) * 2, 1);
 	
@@ -68,7 +69,12 @@ _SECTION_END();
 // Foreign transaction value, drawn over the transaction value above
 //
 _SECTION_BEGIN("Fg Val(B)");
-	ffIntervalValue = stGetFFIntervalValue();
+	ffIntervalBuyValue = stGetFFIntervalBuyValue();
+	ffIntervalSellValue = stGetFFIntervalSellValue();
+	
+	StaticVarSet("ffIntervalBuyValue", ffIntervalBuyValue);
+	StaticVarSet("ffIntervalSellValue", ffIntervalSellValue);
+	ffIntervalValue = ffIntervalBuyValue - ffIntervalSellValue;
 	
 	Plot( abs(ffIntervalValue), 
 		  WriteIf(ffIntervalValue >= 0, "Net Buy (B)", "Net Sell (B)"), 
@@ -81,40 +87,6 @@ _SECTION_BEGIN("Fg Val(B)");
 		  3);
 _SECTION_END();
 
-
-/*
-_SECTION_BEGIN("Daily Avg");
-	AvgPeriodDays = Param("Avg Period Days", 2, 1, 600);
-	
-	FF_IntBuyValue = odbcGetArraySQL(" SELECT INT_BUY_VALUE, dtime " + 
-								     " FROM v_adj_intraday_foreign " +
-							         " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
-	FF_IntBuyShares = FF_IntBuyValue / Close;
-
-	FF_DayBuyValue = SumDays(FF_IntBuyValue, AvgPeriodDays);
-	FF_CumBuyShares = SumDays(FF_IntBuyShares, AvgPeriodDays);
-	
-	FF_BuyAvg = IIf(FF_CumBuyShares, FF_DayBuyValue / FF_CumBuyShares, Null);
-	
-	Plot( FF_BuyAvg, "BuyAvg(" + NumToStr(AvgPeriodDays,1.0) + ")", colorSeaGreen, styleDashed | styleThick | styleDots, Null, Null, Null, 2); 
-
-	
-	FF_IntSellValue = odbcGetArraySQL(" SELECT INT_SELL_VALUE, dtime " + 
-								      " FROM v_adj_intraday_foreign " +
-							          " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
-	FF_IntSellShares = FF_IntSellValue / Close;
-
-	FF_DaySellValue = SumDays(FF_IntSellValue, AvgPeriodDays);
-	FF_CumSellShares = SumDays(FF_IntSellShares, AvgPeriodDays);
-	FF_SellAvg = IIf(FF_CumSellShares, FF_DaySellValue / FF_CumSellShares, Null);
-	Plot( FF_SellAvg, 
-		  "SellAvg(" + NumToStr(AvgPeriodDays,1.0) + ")", 
-		  colorLightOrange, 
-		  styleDashed | styleThick, 
-		  Null, Null, Null, 2); 
-	
-_SECTION_NAME();
-*/
 
 //
 // Foreign accummulation (balance)
@@ -139,7 +111,14 @@ _SECTION_END();
 // Foreign average price
 //
 _SECTION_BEGIN("Fg Avg");
-	ffAvg = stGetFFAverageFromIntervalNet(ffIntervalValue);
+	//ffAvg = stGetFFAverageFromIntervalNet(ffIntervalValue);
+	typ = stTypicalPrice();
+	buyValue = ffIntervalBuyValue * MILYAR;
+	sellValue = ffIntervalSellValue * MILYAR;
+	
+	ffAvg = stGetAvgPrice(buyValue, buyValue/typ, sellValue, sellValue / typ);
+	ffProfit = stProfit;
+	
 	Plot( ffAvg, "Foreign Avg", colorGreen, styleDashed | styleThick | styleNoLabel); 
 _SECTION_END();
 
@@ -165,3 +144,5 @@ if (ffMaEnabled) {
 	//Plot(Buy, "Buy", colorBlack, styleNoLine | styleNoLabel | styleOwnScale);
 	PlotShapes( Buy * shapeUpArrow, colorGreen, 0, Min(L, O)); 
 }
+
+stMasterChartSignalReady(chartId);

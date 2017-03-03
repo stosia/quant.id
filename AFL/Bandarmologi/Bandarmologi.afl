@@ -191,7 +191,6 @@ function stBdGetBrokerAveragePrice(broker_name)
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
 		      " ORDER BY dtime Asc" );
 	buyValue = odbcGetArraySQL(sql);
-	buyAvg = IIf(buyShares >= 1, buyValue / buyShares, 0);
 	
 	_N( sql = " SELECT " + col + "_sell_vol, dtime \n" + 
 			  " FROM  v_adj_intraday_broker \n" +
@@ -204,95 +203,12 @@ function stBdGetBrokerAveragePrice(broker_name)
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
 		      " ORDER BY dtime Asc" );
 	sellValue = odbcGetArraySQL(sql);
-	sellAvg = IIf(sellShares >= 1, sellValue / sellShares, 0);
-	
-	netShares = buyShares - sellShares;
-	
-	dn = DateNum();
-	prev_dn = -1;
-	
-	i = 0;
-	if (IsEmpty(netShares[i])) {
-		portoShares[i] = 0;
-		portoAvg[i] = Null;
-		stBrokerProfit[i] = Null;
-		branch[i] = 10;
-	} else if (netShares[i] >= 0) {
-		portoShares[i] = netShares[i];
-		portoAvg[i] = buyAvg[i];
-		stBrokerProfit[i] = netShares[i] * (sellAvg[i] - buyAvg[i]);
-		branch[i] = 20;
-	} else {
-		portoShares[i] = 0;
-		portoAvg[i] = Null;
-		stBrokerProfit[i] = sellShares[i] * (sellAvg[i] - buyAvg[i]);
-		branch[i] = 30;
-	}
 
-	for (i=1; i<BarCount; ++i) {
-		if (IsEmpty(netShares[i])) {
-			branch[i] = 40;
-			portoShares[i] = 0;
-			portoAvg[i] = Null;
-			stBrokerProfit[i] = stBrokerProfit[i-1];
-		} else if (dn[i] != prev_dn && isIntraday) {
-			branch[i] = 50;
-			// Reset on new day
-			if (netShares[i] >= 0) {
-				branch[i] = 53;
-				portoShares[i] = netShares[i];
-				portoAvg[i] = buyAvg[i];
-				stBrokerProfit[i] = netShares[i] * (sellAvg[i] - buyAvg[i]);
-			} else {
-				branch[i] = 56;
-				portoShares[i] = 0;
-				portoAvg[i] = Null;
-				stBrokerProfit[i] = sellShares[i] * (sellAvg[i] - buyAvg[i]);
-			}
-			prev_dn = dn[i];
-			
-		} else {
-			branch[i] = 60;
-			portoShares[i] = portoShares[i-1] + buyShares[i];
-			if (portoShares[i]) {
-				if (IsEmpty(portoAvg[i-1])) {
-					portoAvg[i] = buyAvg[i];
-					branch[i] = 62;
-				} else {
-					branch[i] = 64;
-					portoAvg[i] = ((portoShares[i-1] * portoAvg[i-1]) + (buyShares[i] * buyAvg[i])) / portoShares[i];
-				}
-			} else {
-				branch[i] = 66;
-				portoAvg[i] = PortoAvg[i-1];
-			}
-			
-			if (sellShares[i] >= portoShares[i]) {
-				// All sold
-				stBrokerProfit[i] = IIf(IsEmpty(stBrokerProfit[i-1]), 0, stBrokerProfit[i-1]) + (portoShares[i] * (sellAvg[i] - portoAvg[i]));
-				portoShares[i] = 0;
-			}  else {
-				stBrokerProfit[i] = IIf(IsEmpty(stBrokerProfit[i-1]), 0, stBrokerProfit[i-1]) + (sellShares[i] * (sellAvg[i] - portoAvg[i]));
-				portoShares[i] -= sellShares[i];
-			}
-		}
-	}
+	avgPrice = stGetAvgPrice(buyValue, buyShares, sellValue, sellShares);
+	stBrokerProfit = stProfit;
 	
-	if (Status("ActionEx") == actionExplore) {
-		//AddColumn(BarIndex(), "i", 1.0);
-		//AddColumn(branch, "branch", 1.0);
-		AddColumn(buyShares, "buyShares", 1.0);
-		AddColumn(sellShares, "sellShares", 1.0);
-		AddColumn(buyShares - sellShares, "netShares", 1.0);
-		
-		AddColumn(buyAvg, "buyAvg", 1.2);
-		AddColumn(sellAvg, "sellAvg", 1.2);
-		
-		AddColumn(portoShares, "portoShares", 1.0);
-		AddColumn(portoAvg, "portoAvg", 1.2);
-		AddColumn(stBrokerProfit, "stBrokerProfit", 1.0);
-	}
-	return portoAvg;
+	return avgPrice;
+
 }
 
 
