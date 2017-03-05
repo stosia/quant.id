@@ -35,7 +35,7 @@
 t0 = GetPerformanceCounter();
 
 _N(chartId = "ForeignFlow01");
-stSlaveChartWaitReady(chartId);
+stSlaveChartWaitReady(chartId, 3);
 
 _SECTION_BEGIN("Foreign Net");
 	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());

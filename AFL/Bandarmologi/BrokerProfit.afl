@@ -32,7 +32,7 @@
 #include_once <..\..\quant.id\AFL\Tools.afl>
 
 _N( chartId = "BrokerDetails01" );
-stSlaveChartWaitReady(chartId);
+stSlaveChartWaitReady(chartId, 10);
 
 _SECTION_BEGIN("Net");
 	_N(brokerName = StaticVarGetText("brokerName"));

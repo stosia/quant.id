@@ -486,8 +486,11 @@ function stMasterChartSignalReady(id)
 //
 // Slave chart wait until master is ready
 //
-function stSlaveChartWaitReady(id)
+function stSlaveChartWaitReady(id, timeoutSec)
 {
+	sleepDuration = 100;
+	sleepCount = timeoutSec * 1000 / sleepDuration;
+	
 	varname = "Chart" + id;
 	expected = Name() + "," + NumToStr(Interval()) + "," + NumToStr(SelectedValue(DateNum()));
 	i = 0;
@@ -497,12 +500,12 @@ function stSlaveChartWaitReady(id)
 			break;
 		
 		i += 1;
-		if (i > 10000 / 100) {
+		if (i > sleepCount) {
 			stAlert("Error: timeout waiting for master chart signal");
 			break;
 		}
 		
-		ThreadSleep(100);
+		ThreadSleep(sleepDuration);
 	}
 }
 

@@ -35,7 +35,7 @@
 t0 = GetPerformanceCounter();
 
 _N(chartId = "ForeignFlow01");
-stSlaveChartWaitReady(chartId);
+stSlaveChartWaitReady(chartId, 3);
 
 //
 // Foreign Ratio adalah ratio nilai transaksi asing terhadap total nilai
@@ -52,6 +52,7 @@ _SECTION_BEGIN("Foreign Ratio");
 	ffIntSellValue = StaticVarGet("ffIntervalSellValue");
 
 	ffIntValue = Max(ffIntBuyValue, ffIntSellValue);
+	ffNetValue = abs(ffIntBuyValue - ffIntSellValue);
 
 	//Period = Param("Period", 2, 1, 100, 1);
 	//Sum_Value = Sum(intValue, Period);
@@ -64,8 +65,8 @@ _SECTION_BEGIN("Foreign Ratio");
 	//GraphZOrder = 1;
 
 	dynamic_color = IIf( ffIntBuyValue >= ffIntSellValue, 
-						 ColorBlend( colorBlueGrey, GetChartBkColor(), 0.3), 
-						 ColorBlend( colorLightOrange, GetChartBkColor(), 0.3)); 
+						 ColorBlend( colorBlueGrey, GetChartBkColor(), 0.4), 
+						 ColorBlend( colorLightOrange, GetChartBkColor(), 0.4)); 
 	Plot( Round(ffRatio), 
 		  "Foreign Ratio (%)", 
 		  dynamic_color, 
@@ -76,6 +77,21 @@ _SECTION_BEGIN("Foreign Ratio");
 		  1,
 		  5);
 
+	
+	ffNetRatio = IIf(intValue, ffNetValue * 100 / intValue, 0);
+	dynamic_color2 = IIf(ffIntBuyValue >= ffIntSellValue, 
+						 ColorBlend( colorBlueGrey, GetChartBkColor(), 0.1), 
+						 ColorBlend( colorLightOrange, GetChartBkColor(), 0.1)); 
+	Plot( Round(ffNetRatio), 
+		  "Foreign Net Ratio (%)", 
+		  dynamic_color2, 
+		  styleHistogram | styleThick,
+		  0,
+		  100,
+		  0,
+		  2,
+		  5);
+	
 	Plot( 100, 
 		  "100", 
 		  colorGrey50, 
