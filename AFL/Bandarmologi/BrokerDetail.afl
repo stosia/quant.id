@@ -31,6 +31,7 @@
 
 #include_once <..\..\quant.id\AFL\Bandarmologi\Bandarmologi.afl>
 
+t0 = GetPerformanceCounter();
 
 _N(chartId = "BrokerDetails01");
 
@@ -86,7 +87,7 @@ _SECTION_BEGIN("Broker Details");
 	balance = stBdGetBrokerCumValue(brokerName);
 	StaticVarSet("brokerBalance", balance);
 
-	Plot(Prec(balance, 1), brokerName, 
+	Plot(stAutoPrec(balance), "Balance (B)", 
 		 colorLightBlue, 
 		 styleLine | styleThick, 
 		 Null, Null, 0, 5);
@@ -96,10 +97,10 @@ _SECTION_BEGIN("Broker Details");
 	brokerProfit = stBrokerProfit / MILYAR;
 	StaticVarSet("brokerProfit", brokerProfit);
 
-	Plot( avgPrice, 
-		  brokerName + "-Avg",  
+	Plot( Prec(avgPrice, 1), 
+		  "Avg",  
 		  colorGreen, 
-		  styleDashed | styleOwnScale | styleNoLabel | styleThick, 
+		  styleDashed | styleOwnScale | styleThick, 
 		  LowestLow, 
 		  HighestHigh, 
 		  0, 
@@ -108,3 +109,6 @@ _SECTION_BEGIN("Broker Details");
 _SECTION_END();
 
 stMasterChartSignalReady(chartId);
+
+t1 = GetPerformanceCounter();
+"Broker details: " + (t1 - t0) + " ms\n";

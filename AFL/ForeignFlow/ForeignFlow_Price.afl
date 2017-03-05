@@ -61,7 +61,7 @@ _SECTION_BEGIN("Val(B)");
 	
 	maxIntervalValue = Max(HighestVisibleValue(intervalValue) * 2, 1);
 	
-	Plot( intervalValue, 
+	Plot( stAutoPrec(intervalValue), 
 		  _DEFAULT_NAME(), 
 		  ColorBlend( colorBlueGrey, GetChartBkColor(), 0.5  ),
 		  styleHistogram | styleThick | styleOwnScale,
@@ -106,7 +106,7 @@ _SECTION_BEGIN("Fg Cum(B)");
 	ffBalanceMin = LowestVisibleValue(ffBalance);
 	ffBalanceMax = HighestVisibleValue(ffBalance);
 	
-	Plot( ffBalance, 
+	Plot( stAutoPrec(ffBalance), 
 		  "Balance(B)", 
 		  colorRed, 
 		  styleLine | styleOwnScale | styleThick, 

@@ -105,4 +105,4 @@ _SECTION_BEGIN("Foreign Ratio");
 _SECTION_END();
 
 t1 = GetPerformanceCounter();
-"Foreign ratio: " + (t1 - t0) + " ms\n";
+Name() + " Foreign ratio: " + (t1 - t0) + " ms\n";

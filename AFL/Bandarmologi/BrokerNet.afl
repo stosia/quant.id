@@ -31,7 +31,7 @@
 
 #include_once <..\..\quant.id\AFL\Tools.afl>
 
-chartId = "BrokerDetails01";
+_N( chartId = "BrokerDetails01" );
 stSlaveChartWaitReady(chartId);
 
 _SECTION_BEGIN("Net");
@@ -43,5 +43,6 @@ _SECTION_BEGIN("Net");
 	net = Balance - Ref(Balance, -1);
 	dynamic_color = IIf(net >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), 
 								  ColorBlend(colorLightOrange, GetChartBkColor(), 0.5));
-	Plot(Prec(abs(net),3), "Net " + WriteIf(net >= 0, "Buy", "Sell"), dynamic_color, styleHistogram | styleThick, Null, Null, 0, 0, 5);
+	Plot(stAutoPrec(abs(net)), "Net " + WriteIf(net >= 0, "Buy", "Sell"), dynamic_color, 
+		 styleHistogram | styleThick, Null, Null, 0, 0, 5);
 _SECTION_END();
