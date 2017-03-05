@@ -29,56 +29,19 @@
  *  - 
  */
 
-#include_once <..\..\quant.id\AFL\Bandarmologi\Bandarmologi.afl>
+#include_once <..\..\quant.id\AFL\Tools.afl>
 
-HighestHigh = HighestVisibleValue(High) * 1.02;
-LowestLow = LowestVisibleValue(Low) * 0.98;
+chartId = "BrokerDetails01";
+stSlaveChartWaitReady(chartId);
 
-function PlotAvgPrice(broker_name, color)
-{
-	balance = stBdGetBrokerCumValue(broker_name);
-	PlotText( broker_name, BarCount-5, balance[BarCount-5], colorWhite, color);
+_SECTION_BEGIN("Net");
+	brokerName = StaticVarGetText("brokerName");
 	
-	netValue = balance - Ref(balance, -1);
-	avgPrice = stGetAveragePriceFromNetValue(netValue);
+	stSetBackgroundTitle(brokerName + ": Transactions");
 	
-	Plot( avgPrice, 
-		  broker_name + "-Avg",  
-		  color, 
-		  styleDashed | styleOwnScale, 
-		  LowestLow, 
-		  HighestHigh, 
-		  1, 
-		  1); 
-	
-}
-
-_SECTION_BEGIN("Price");
-	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.6)));
-	
-	Plot( C, 
-		  "Close",  
-		  IIf(C >= Open, ColorBlend(GetChartBkColor(), colorGreen, 0.6), ColorBlend(GetChartBkColor(), colorBrown, 0.6)), 
-		  GetPriceStyle(), 
-		  LowestLow, 
-		  HighestHigh, 
-		  0, 
-		  1); 
+	balance = StaticVarGet("brokerBalance");
+	net = Balance - Ref(Balance, -1);
+	dynamic_color = IIf(net >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), 
+								  ColorBlend(colorLightOrange, GetChartBkColor(), 0.5));
+	Plot(Prec(abs(net),3), "Net " + WriteIf(net >= 0, "Buy", "Sell"), dynamic_color, styleHistogram | styleThick, Null, Null, 0, 0, 5);
 _SECTION_END();
-
-_SECTION_BEGIN("Broker Avg");
-	brokers = StaticVarGetText("stBrokerDetailBrokers");
-	
-	stSetBackgroundTitle("Brokers Average");
-	
-	i = 0;
-	while (i < 6) {
-		broker = StrExtract(brokers, i);
-		if (broker == "")
-			break;
-		PlotAvgPrice(broker, stBdBuyerColors[i]);
-		i += 1;
-	}
-
-_SECTION_END();
-

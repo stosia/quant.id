@@ -9,8 +9,8 @@
 			<FilePath>Formulas\\quant.id\\Indicators\\ForeignFlow\\Price_Indicator.afl</FilePath>
 			<Flags>256</Flags>
 			<MoreFlags>1073741835</MoreFlags>
-			<Min>15239.5</Min>
-			<Max>15801.9</Max>
+			<Min>531</Min>
+			<Max>1280.84</Max>
 		</Pane>
 		<Pane>
 			<ChartID>1215</ChartID>
@@ -19,8 +19,8 @@
 			<FilePath>Formulas\\quant.id\\Indicators\\ForeignFlow\\Net_Indicator.afl</FilePath>
 			<Flags>256</Flags>
 			<MoreFlags>1342177281</MoreFlags>
-			<Min>-0.0216479</Min>
-			<Max>1.13782</Max>
+			<Min>-0.220203</Min>
+			<Max>11.5739</Max>
 		</Pane>
 		<Pane>
 			<ChartID>1216</ChartID>
@@ -42,8 +42,8 @@
 			<FilePath>Formulas\\quant.id\\Indicators\\ForeignFlow\\Price_Indicator.afl</FilePath>
 			<Flags>256</Flags>
 			<MoreFlags>1073741835</MoreFlags>
-			<Min>15239.5</Min>
-			<Max>15801.9</Max>
+			<Min>531</Min>
+			<Max>1280.84</Max>
 		</Pane>
 		<Pane>
 			<ChartID>1197</ChartID>

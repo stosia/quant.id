@@ -3,26 +3,36 @@
  *
  * This file is licensed under  GNU GPL (General Public License) version 3.
  *
+ * File ini dilisensikan kepada Anda, bukan  Anda miliki.  Pemilik file ini
+ * adalah pemegang  hak cipta ("copyright holder") di atas. Gunakanlah file
+ * ini sesuai dengan lisensi yang telah ditetapkan untuk file ini.
+ *
  * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
  * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
  * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
- * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
- * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
+ * modifikasi atau karya tersebut kepada publik. Hal ini untuk menjaga agar
+ * pengetahuan yang ada di sini menjadi lebih berkembang  di masa mendatang 
+ * untuk kemajuan kita bersama.
  *
  * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
- * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
- * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
- * produk yang dijual secara komersial, karena hal itu tidak etis.
+ * profit di pasar saham baik secara perorangan atau organisasi, asal tidak
+ * jahat. Sebagai tambahan permintaan, kami menghimbau untuk TIDAK  menjual
+ * kode/file  ini secara  apa adanya  atau dalam bundel  produk yang dijual
+ * secara komersial, karena hal itu tidak etis.
  *
  * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
  * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
  * bersama file ini.
  *
  * Author: Benny Prijono <benny@stosia.com>
+ * Contributors:
+ *  - 
  */
 #include_once <..\..\quant.id\AFL\Tools.afl>
 #include_once <..\..\quant.id\AFL\Common.afl>
 #include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow.afl>
+
+t0 = GetPerformanceCounter();
 
 _N(chartId = "ForeignFlow01");
 stSlaveChartWaitReady(chartId);
@@ -33,7 +43,7 @@ stSlaveChartWaitReady(chartId);
 // asing dalam transaksi saham tersebut.
 //
 _SECTION_BEGIN("Foreign Ratio");
-	stSetBackgroundTitle(_SECTION_NAME());
+	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
 	stSetBackgroundSubtitle("Quant.id ©2017 Stosia");
 	
 	intValue = StaticVarGet("intervalValue");
@@ -93,3 +103,6 @@ _SECTION_BEGIN("Foreign Ratio");
 		  0,
 		  0 );
 _SECTION_END();
+
+t1 = GetPerformanceCounter();
+"Foreign ratio: " + (t1 - t0) + " ms\n";

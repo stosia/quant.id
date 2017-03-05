@@ -31,6 +31,8 @@
 
 #include_once <..\..\quant.id\AFL\Bandarmologi\Bandarmologi.afl>
 
+t0 = GetPerformanceCounter();
+
 _SECTION_BEGIN("Price");
 	_N(Title = StrFormat("Quant.id ©2017 Stosia -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
 	
@@ -82,3 +84,6 @@ _SECTION_BEGIN("Bandarmologi Detail");
 	}
 
 _SECTION_END();
+
+t1 = GetPerformanceCounter();
+"Top brokers: " + (t1 - t0) + " ms\n";
