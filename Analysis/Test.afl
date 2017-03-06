@@ -1,2 +1,12 @@
+#include_once <..\Quant.id\AFL\Tools.afl>
+
 Filter = 1;
-AddColumn(C, "C");
+
+dn = (2016 - 1900) * 10000 + 3 * 100 + 6;
+tn = 9 * 10000 + 1 * 100 + 46;
+
+dt = DateTimeConvert(2, dn, tn);
+
+AddTextColumn( "'" + stDateTimeToISODate(dt) + "'", "Date");
+AddTextColumn( "'" + stDateTimeToISODateTime(dt) + "'", "Date Time");
+

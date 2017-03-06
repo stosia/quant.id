@@ -66,7 +66,7 @@ function stBdGetStartDate(days)
 	latest_date = DateTimeConvert(2, cur_dn);
 	
 	sd = DateTimeAdd(latest_date, -days, inDaily);
-	return DateTimeToStr(sd, 4);
+	return stDateTimeToISODate(sd);
 }
 
 //
@@ -84,7 +84,7 @@ function stBdInit(is_master)
 		stBdParamTopCount = Param("Brokers", stBdParamTopCount, 1, 5);
 		stBdParamAbs = ParamToggle("Absolute Value", "No|Yes", stBdParamAbs);
 		sb = ParamDate("Start Balance", stBdStartBalanceDate, 0);
-		_N( stBdStartBalanceDate = stDateNumToStr(sb) );
+		_N( stBdStartBalanceDate = stDateNumToISODate(sb) );
 
 		_N( stBdStartDate = stBdGetStartDate(stBdParamDays) );
 		if (stBdStartDate < stBdStartBalanceDate)

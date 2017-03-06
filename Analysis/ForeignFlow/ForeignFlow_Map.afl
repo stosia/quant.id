@@ -115,7 +115,7 @@ if (BarCount > 0) {
 
 	// Add text column for debugging
 	dt = DateTime();
-	comment = "From " + DateTimeToStr(dt[startIndex],3) + " to " + DateTimeToStr(dt[endIndex], 3);
+	comment = "From " + stDateTimeToISODateTime(dt[startIndex]) + " to " + stDateTimeToISODateTime(dt[endIndex]);
 	AddTextColumn(comment, "Comment");
 	
 	// Plot the point
