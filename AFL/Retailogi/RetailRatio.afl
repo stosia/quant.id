@@ -29,8 +29,8 @@
  *  - 
  */
 
-#include_once <..\..\quant.id\AFL\Bandarmologi\Bandarmologi.afl>
-#include_once <..\..\quant.id\AFL\Common.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\Bandarmologi.afl>
+#include_once <..\Quant.id\AFL\Common.afl>
 
 
 _SECTION_BEGIN("Retail Value");

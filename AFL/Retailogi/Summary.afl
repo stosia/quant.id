@@ -29,9 +29,9 @@
  *  - 
  */
 
-#include_once <..\..\quant.id\AFL\Retailogi\Retailogi.afl>
-#include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow.afl>
-#include_once <..\..\quant.id\AFL\Common.afl>
+#include_once <..\Quant.id\AFL\Retailogi\Retailogi.afl>
+#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
+#include_once <..\Quant.id\AFL\Common.afl>
 
 stSetBackgroundTitle(Name());
 stSetBackgroundSubtitle("Retailogi");

@@ -18,7 +18,7 @@
  */
 MILYAR = 1000000000.0;
 
-Open = IIf(BarIndex() > 0, Ref(Close, -1), Close);
+Open = Ref(Close, -1);
 
 //
 // Connect to ODBC database

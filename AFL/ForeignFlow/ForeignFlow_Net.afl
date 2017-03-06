@@ -28,9 +28,9 @@
  * Contributors:
  *  - 
  */
-#include_once <..\..\quant.id\AFL\Tools.afl>
-#include_once <..\..\quant.id\AFL\Common.afl>
-#include_once <..\..\quant.id\AFL\ForeignFlow\ForeignFlow.afl>
+#include_once <..\Quant.id\AFL\Tools.afl>
+#include_once <..\Quant.id\AFL\Common.afl>
+#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 
 t0 = GetPerformanceCounter();
 

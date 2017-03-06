@@ -28,7 +28,7 @@
  * Contributors:
  *  - 
  */
-#include_once <..\..\quant.id\AFL\Tools.afl>
+#include_once <..\Quant.id\AFL\Tools.afl>
 
 //
 // Foreign flow interval value is the foreign NET buy/sell for each

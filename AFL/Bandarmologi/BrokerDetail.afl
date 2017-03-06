@@ -29,7 +29,7 @@
  *  - 
  */
 
-#include_once <..\..\quant.id\AFL\Bandarmologi\Bandarmologi.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\Bandarmologi.afl>
 
 t0 = GetPerformanceCounter();
 

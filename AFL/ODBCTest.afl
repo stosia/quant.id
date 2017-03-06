@@ -21,7 +21,7 @@
  * Author: Benny Prijono <benny@stosia.com>
  */
  
-#include_once <..\..\quant.id\AFL\Tools.afl>
+#include_once <..\Quant.id\AFL\Tools.afl>
 
 
 stSetBackgroundTitle(Name());
