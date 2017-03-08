@@ -219,7 +219,7 @@ class User:
     @staticmethod
     def generate_password():
         unallowed_chars = "O0o1l"
-        chars = string.lowercase + string.uppercase + string.digits
+        chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
         for char in unallowed_chars:
             chars = chars.replace(char, '')
         plen = len(chars)
@@ -344,15 +344,10 @@ def normalize_user_id(user_id):
 
 # print("        add email full name     Add an account for new/existing user")
 def add(dbc, args):
-    if len(args) < 2:
-        sys.stderr.write("Error: email and full name is required\n")
+    if len(args) < 1:
+        sys.stderr.write("Error: email is required. Full name is also required when addning new user\n")
         sys.exit(1)
-
     email = normalize_email(args[0])
-    full_name = " ".join(args[1:])
-    if len(full_name) < 5:
-        sys.stderr.write("Error: Full name is too short\n")
-        sys.exit(1)
 
     usr = User.db_lookup_by_email(dbc, email)
     if usr:
@@ -365,6 +360,13 @@ def add(dbc, args):
             print("%s's active account %s will be dropped first" % (email, usr.cur_acc))
             usr.db_del_account()
     else:
+        if len(args) < 2:
+            sys.stderr.write("Error: email and full name is required\n")
+            sys.exit(1)
+        full_name = " ".join(args[1:])
+        if len(full_name) < 5:
+            sys.stderr.write("Error: Full name is too short\n")
+            sys.exit(1)
         for i in range(10):
             user_id = User.generate_user_id(full_name)
             if not User.db_lookup_by_user_id(dbc, user_id):

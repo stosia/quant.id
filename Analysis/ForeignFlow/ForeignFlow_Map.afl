@@ -23,7 +23,8 @@
  
 #include_once <..\Quant.id\AFL\Tools.afl>
 #include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
- 
+
+#pragma maxthreads 4
  
 // All symbols and quotes accepted.
 // Control which symbols are included/excluded from the Exploration filter settings
@@ -40,6 +41,7 @@ endDate = Status("rangetodate");
 if (BarCount > 0) {
 
 	ffDayNetValue = stGetFFIntervalValue();
+	ffBalance = Cum(ffDayNetValue);
 
 	dn = DateNum();
 	tn = TimeNum();
@@ -70,9 +72,6 @@ if (BarCount > 0) {
 	if (endIndex >= BarCount) {
 		endIndex = BarCount - 1;
 	}
-
-	// Foreign balance
-	ffBalance = Cum(ffDayNetValue);
 
 	// Ret is the return/yield of the stock from startDate to endDate
 	Ret = (C - C[startIndex]) * 100 / C[startIndex];

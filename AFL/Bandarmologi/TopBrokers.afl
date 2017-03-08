@@ -34,7 +34,7 @@
 t0 = GetPerformanceCounter();
 
 _SECTION_BEGIN("Price");
-	_N(Title = StrFormat("Quant.id ©2017 Stosia -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
+	_N(Title = StrFormat("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
 	
 	SetChartOptions(0, chartShowDates);
 	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.3)));
@@ -52,7 +52,7 @@ _SECTION_BEGIN("Bandarmologi Detail");
 	// Background text
 	stSetBackgroundTitle(Name());
 	stSetBackgroundSubtitle("Bandarmologi " + stBdParamDays + "/" + stBdParamTopCount);
-	stSetBackgroundSubsubtitle("Quant.id ©2017 Stosia");
+	stSetBackgroundSubsubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
 	
 	// Y-axis
 	Plot(0, "0", colorGrey40, styleLine | styleThick | styleNoLabel, 

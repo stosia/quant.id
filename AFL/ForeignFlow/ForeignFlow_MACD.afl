@@ -39,7 +39,8 @@ _SECTION_BEGIN("Foreign MACD");
 	maPeriod2 = Param("EMA 2", 26, 1, 200, 1);
 	maPeriod3 = Param("EMA 3", 9, 1, 200, 1);
 
-	stSetBackgroundTitle(StrFormat("Foreign MACD(%g, %g, %g)", maPeriod1, maPeriod2, maPeriod3));
+	stSetBackgroundTitle(StrFormat(Name() + " Foreign MACD(%g, %g, %g)", maPeriod1, maPeriod2, maPeriod3));
+	stSetBackgroundSubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
 	
 	ffBalance = stGetFFBalance();
 	

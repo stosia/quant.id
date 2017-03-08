@@ -39,7 +39,7 @@ stSlaveChartWaitReady(chartId, 3);
 
 _SECTION_BEGIN("Foreign Net");
 	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
-	stSetBackgroundSubtitle("Quant.id ©2017 Stosia");
+	stSetBackgroundSubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
 	
 	B = StaticVarGet("ffIntervalBuyValue");
 	S = StaticVarGet("ffIntervalSellValue");

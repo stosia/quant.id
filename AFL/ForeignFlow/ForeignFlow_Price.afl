@@ -37,7 +37,7 @@ t0 = GetPerformanceCounter();
 
 stSetBackgroundTitle(Name());
 stSetBackgroundSubtitle("Foreign Flow System");
-stSetBackgroundSubsubtitle("Quant.id ©2017 Stosia");
+stSetBackgroundSubsubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
 
 _N(chartId = "ForeignFlow01");
 
@@ -46,7 +46,7 @@ _N(chartId = "ForeignFlow01");
 //
 _SECTION_BEGIN("Price");
 	SetChartOptions(0,chartShowArrows|chartShowDates);
-	_N(Title = StrFormat("Quant.id ©2017 Stosia -- {{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
+	_N(Title = StrFormat("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia -- {{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
 						  O, H, L, C, SelectedValue( ROC( C, 1 )) ));
 	Plot( C, "Close", colorDefault, styleNoTitle | GetPriceStyle() ); 
 _SECTION_END();

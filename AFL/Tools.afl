@@ -16,6 +16,9 @@
  * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
  * bersama file ini.
  */
+ 
+_N(QID_VERSION_STR = "0.9");
+
 MILYAR = 1000000000.0;
 
 Open = Ref(Close, -1);
