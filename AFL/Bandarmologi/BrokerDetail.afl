@@ -48,7 +48,7 @@ stSetBackgroundSubtitle("Broker Detail: " + brokers);
 if (brokers == "") {
 	stSetBackgroundSubsubtitle("Please set broker from parameters");
 } else {
-	stSetBackgroundSubsubtitle("Quant.id v" + QID_VERSION + " ©2017 Stosia");
+	stSetBackgroundSubsubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
 }
 
 //

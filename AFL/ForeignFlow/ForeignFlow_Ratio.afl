@@ -80,8 +80,8 @@ _SECTION_BEGIN("Foreign Ratio");
 	
 	ffNetRatio = IIf(intValue, ffNetValue * 100 / intValue, 0);
 	dynamic_color2 = IIf(ffIntBuyValue >= ffIntSellValue, 
-						 ColorBlend( colorBlueGrey, GetChartBkColor(), 0.1), 
-						 ColorBlend( colorLightOrange, GetChartBkColor(), 0.1)); 
+						 colorBlue, 
+						 colorOrange); 
 	Plot( Round(ffNetRatio), 
 		  "Foreign Net Ratio (%)", 
 		  dynamic_color2, 
