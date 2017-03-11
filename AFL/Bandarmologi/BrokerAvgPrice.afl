@@ -82,3 +82,5 @@ _SECTION_BEGIN("Broker Avg");
 
 _SECTION_END();
 
+// I think this AFL is not used and should be deleted
+Error("Check this");

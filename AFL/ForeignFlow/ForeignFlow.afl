@@ -40,22 +40,21 @@
 //
 function stGetFFIntervalValue()
 {
-	stConnectDatabase();
-
 	if (Interval() < inDaily) {
-		ffIntVal = odbcGetArraySQL( " SELECT INT_NET_VALUE, dtime " + 
-									 " FROM v_adj_intraday_foreign " +
-									 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+		_N( sql = " SELECT INT_NET_VALUE, dtime " + 
+					" FROM v_adj_intraday_foreign " +
+					" WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet");
 		}
 		
-		ffIntVal = odbcGetArraySQL( " SELECT DAY_NET_VALUE, dtime " + 
-									" FROM v_adj_intraday_foreign " +
-									" WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+		_N( sql = " SELECT DAY_NET_VALUE, dtime " + 
+					" FROM v_adj_intraday_foreign " +
+					" WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
 	}
 	
+	ffIntVal = stCachedSQL("stFFIntervalValue", sql) / MILYAR;
 	return ffIntVal;
 }
 
@@ -64,22 +63,21 @@ function stGetFFIntervalValue()
 //
 function stGetFFIntervalBuyValue()
 {
-	stConnectDatabase();
-
 	if (Interval() < inDaily) {
-		ffIntBuyValue = odbcGetArraySQL( " SELECT int_buy_value, dtime " + 
-										 " FROM v_adj_intraday_foreign " +
-										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+		_N( sql = " SELECT int_buy_value, dtime " + 
+					 " FROM v_adj_intraday_foreign " +
+					 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet");
 		}
 		
-		ffIntBuyValue = odbcGetArraySQL( " SELECT day_buy_value, dtime " + 
-										 " FROM v_adj_intraday_foreign " +
-										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+		_N( sql = " SELECT day_buy_value, dtime " + 
+					 " FROM v_adj_intraday_foreign " +
+					 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
 	}
 
+	ffIntBuyValue = stCachedSQL( "stFFIntervalBuyValue", sql) / MILYAR;
 	return ffIntBuyValue;
 }
 
@@ -88,22 +86,21 @@ function stGetFFIntervalBuyValue()
 //
 function stGetFFIntervalSellValue()
 {
-	stConnectDatabase();
-
 	if (Interval() < inDaily) {
-		ffIntBuyValue = odbcGetArraySQL( " SELECT int_sell_value, dtime " + 
-										 " FROM v_adj_intraday_foreign " +
-										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+		_N( sql = " SELECT int_sell_value, dtime " + 
+					" FROM v_adj_intraday_foreign " +
+					" WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet");
 		}
 		
-		ffIntBuyValue = odbcGetArraySQL( " SELECT day_sell_value, dtime " + 
-										 " FROM v_adj_intraday_foreign " +
-										 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+		_N( sql = " SELECT day_sell_value, dtime " + 
+					" FROM v_adj_intraday_foreign " +
+					" WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
 	}
 
+	ffIntBuyValue = stCachedSQL( "stFFIntervalSellValue", sql) / MILYAR;
 	return ffIntBuyValue;
 }
 

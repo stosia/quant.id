@@ -154,8 +154,8 @@ function stBdGetBrokerCumValue(broker_name)
 		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
 		      " ORDER BY dtime Asc" );
 	
-	//printf("SQL: " + sql + "\n");
-	result = odbcGetArraySQL(sql) / MILYAR;
+	varName = "bdcum-" + broker_name;
+	result = stCachedSQL(varName, sql) / MILYAR;
 	
 	return result;
 }
@@ -168,8 +168,6 @@ function stBdGetBrokerAveragePrice(broker_name)
 {
 	global stBrokerProfit;
 	
-	stConnectDatabase();
-
 	isIntraday = Interval() < inDaily;
 	if (isIntraday) {
 		_N(col = "int");
@@ -184,25 +182,29 @@ function stBdGetBrokerAveragePrice(broker_name)
 			  " FROM  v_adj_intraday_broker \n" +
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
 		      " ORDER BY dtime Asc" );
-	buyShares = odbcGetArraySQL(sql);
+	varName = "bdbuyvol-" + broker_name; 
+	buyShares = stCachedSQL(varName, sql);
 	
 	_N( sql = " SELECT " + col + "_buy_value, dtime \n" + 
 			  " FROM  v_adj_intraday_broker \n" +
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
 		      " ORDER BY dtime Asc" );
-	buyValue = odbcGetArraySQL(sql);
+	varName = "bdbuyvalue-" + broker_name; 
+	buyValue = stCachedSQL(varName, sql);
 	
 	_N( sql = " SELECT " + col + "_sell_vol, dtime \n" + 
 			  " FROM  v_adj_intraday_broker \n" +
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
 		      " ORDER BY dtime Asc" );
-	sellShares = odbcGetArraySQL(sql);
+	varName = "bdsellvol-" + broker_name; 
+	sellShares = stCachedSQL(varName, sql);
 
 	_N( sql = " SELECT " + col + "_sell_value, dtime \n" + 
 			  " FROM  v_adj_intraday_broker \n" +
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
 		      " ORDER BY dtime Asc" );
-	sellValue = odbcGetArraySQL(sql);
+	varName = "bdsellvalue-" + broker_name; 
+	sellValue = stCachedSQL(varName, sql);
 
 	avgPrice = stGetAvgPrice(buyValue, buyShares, sellValue, sellShares);
 	stBrokerProfit = stProfit;

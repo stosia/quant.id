@@ -23,12 +23,148 @@ MILYAR = 1000000000.0;
 
 Open = Ref(Close, -1);
 
+// Enable or disable database caching
+ST_SQL_CACHING_ENABLED = True;
+
+// Error messages
+stAlerts = "";
+
+//
+// Display MessageBox in the chart
+//
+function stMessageBox( txt, color, bkcolor )
+{
+	_N(fontFace = "Arial");
+	fontSize = 12;
+	
+	x = Status("pxwidth")/2;
+	y = 20;
+	
+	GfxSetOverlayMode(0);
+	GfxSelectFont(fontFace, fontSize);
+	GfxSetTextAlign( 6 );// center alignment
+	GfxSetTextColor(color);
+	GfxSetBkColor(bkcolor);
+	GfxSetBkMode(2); // opaque
+	GfxTextOut( txt, x,  y);
+
+}
+
+//
+// Display error message
+//
+function stAlert(txt)
+{
+	global stAlerts;
+	
+	if (StrLen(stAlerts) == 0)
+		_N(stAlerts = txt);
+	else
+		_N(stAlerts = stAlerts + "  \n" + txt);
+		
+	stMessageBox(stAlerts, colorWhite, colorRed);
+}
+
+
+// Try to lock the mutex, keep trying for the specified timeout in seconds
+// Returns True if successful, False if failed.
+function stStaticMutexLock( varName, timeout ) 
+{ 
+	count = (timeout * 1000) / 100;
+	result = False;
+	
+	mutexName = varName + "-mutex";
+	
+	// try obtaining semaphore for 1000 ms 
+	for( i = 0; i < count; i++ )  {
+		if( StaticVarCompareExchange( mutexName, 1, 0 ) == 0 )  { 
+			result = True;
+			break;
+		} else 
+			ThreadSleep( 100 ); 
+	}
+
+	return result; 
+} 
+
+//
+// Unlock static mutex
+//
+function stStaticMutexUnlock( varName )
+{
+	mutexName = varName + "-mutex";
+	
+	if (StaticVarGet(mutexName) == 1) {
+		StaticVarSet(mutexName, 0);
+	} else {
+		Error("Logic error: mutex " + mutexName + " is not held in stStaticMutexUnlock()");
+	}
+}
+
+
+//
+// State is a string that uniquely identifies current chart state. When two states are
+// the same, we can conclude that nothing (seem to) have changed in the chart.
+//
+function stGetState()
+{
+	_N(state = Name() + Interval(2) + LastValue(DateTime()) + SelectedValue(DateTime()));
+	return state;
+}
+
 //
 // Connect to ODBC database
 //
 function stConnectDatabase()
 {
 	odbcOpenDatabase( "ODBC;DSN=quant.id");
+}
+
+//
+// Get array from SQL query and save it to the cache. As long as chart's state 
+// doesn't change, subsequent calls will fetch data from the cache instead.
+//
+function stCachedSQL(varName, sql)
+{
+	_N(varName = Name() + "-" + varName);
+	
+	if (ST_SQL_CACHING_ENABLED == False) {
+		_TRACE(Name() + " " + varName + " not cached");
+		stConnectDatabase();
+		arr = odbcGetArraySQL(sql);
+	} else {
+		// Name of the static variable that holds the state
+		_N(stateVar = varName + "-state");
+		
+		// Name of the static variable that holds the cached value
+		_N(valueVar = varName + "-value");
+		
+		if (stStaticMutexLock(varName, 10) == False) {
+			_TRACE(Name() + " " + varName + " MUTEX ERROR");
+			stAlert("Error: timeout locking SQL data: " + varName);
+			arr = 0;
+		} else {
+			_N(state = stGetState() + sql);
+			
+			if (StaticVarGetText(stateVar) != state) {
+				//_TRACE(Name() + " " + varName + " cache miss");
+				// State has changed, fetch the SQL and save it to the cache
+				stConnectDatabase();
+				arr = odbcGetArraySQL(sql);
+				StaticVarSet(valueVar, arr);
+				// Update the state
+				StaticVarSetText(stateVar, state);
+			} else {
+				//_TRACE(Name() + " " + varName + " cache hit");
+				// State has NOT changed, get the cached data
+				arr = StaticVarGet(valueVar);
+			}
+			
+			stStaticMutexUnlock(varName);
+		}
+	}
+	
+	return arr;
 }
 
 //
@@ -85,35 +221,6 @@ function stSetBackgroundSubSubtitle( txt )
 	GfxTextOut( txt, Status("pxwidth")/2,  
 				height/50 + titleFontHeight + 2*subtitleFontHeight + 
 					2*spacing + subsubtitleFontHeight);
-}
-
-//
-// Display MessageBox in the chart
-//
-function stMessageBox( txt, color, bkcolor )
-{
-	fontFace = "Arial";
-	fontSize = 12;
-	
-	x = Status("pxwidth")/2;
-	y = 20;
-	
-	GfxSetOverlayMode(0);
-	GfxSelectFont(fontFace, fontSize);
-	GfxSetTextAlign( 6 );// center alignment
-	GfxSetTextColor(color);
-	GfxSetBkColor(bkcolor);
-	GfxSetBkMode(2); // opaque
-	GfxTextOut( txt, x,  y);
-
-}
-
-//
-// Display error message
-//
-function stAlert(txt)
-{
-	stMessageBox(txt, colorWhite, colorRed);
 }
 
 //
@@ -532,9 +639,9 @@ function stGetAveragePriceFromNetValue(netVal)
 //
 function stMasterChartSignalReady(id)
 {
-	varname = "Chart" + id;
-	value = Name() + "," + NumToStr(Interval()) + "," + NumToStr(SelectedValue(DateNum()));
-	StaticVarSetText(varname, value);
+	_N(varname = "Chart" + id);
+	_N(state = stGetState());
+	StaticVarSetText(varname, state);
 }
 
 //
@@ -545,12 +652,11 @@ function stSlaveChartWaitReady(id, timeoutSec)
 	sleepDuration = 100;
 	sleepCount = timeoutSec * 1000 / sleepDuration;
 	
-	varname = "Chart" + id;
-	expected = Name() + "," + NumToStr(Interval()) + "," + NumToStr(SelectedValue(DateNum()));
+	_N(varname = "Chart" + id);
+	_N(state = stGetState());
 	i = 0;
 	while (True) {
-		value = StaticVarGetText(varname);
-		if (value == expected)
+		if (StaticVarGetText(varname) == state)
 			break;
 		
 		i += 1;
@@ -571,5 +677,4 @@ function stAutoPrec(arr)
 	precDigit = IIf(abs(arr[BarCount-1]) < 1, 3, 1);
 	return Prec(arr, precDigit);
 }
-
 

@@ -28,18 +28,16 @@
  * Contributors:
  *  - 
  */
+
+_t0 = GetPerformanceCounter();
  
 #include_once <..\Quant.id\AFL\Tools.afl>
 #include_once <..\Quant.id\AFL\Common.afl>
 #include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 
-t0 = GetPerformanceCounter();
-
 stSetBackgroundTitle(Name());
 stSetBackgroundSubtitle("Foreign Flow System");
 stSetBackgroundSubsubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
-
-_N(chartId = "ForeignFlow01");
 
 //
 // Price candlesticks
@@ -57,7 +55,6 @@ _SECTION_END();
 //
 _SECTION_BEGIN("Val(B)");
 	intervalValue = stGetIntervalValue();
-	StaticVarSet("intervalValue", intervalValue);
 	
 	maxIntervalValue = Max(HighestVisibleValue(intervalValue) * 2, 1);
 	
@@ -81,8 +78,6 @@ _SECTION_BEGIN("Fg Val(B)");
 	ffIntervalBuyValue = stGetFFIntervalBuyValue();
 	ffIntervalSellValue = stGetFFIntervalSellValue();
 	
-	StaticVarSet("ffIntervalBuyValue", ffIntervalBuyValue);
-	StaticVarSet("ffIntervalSellValue", ffIntervalSellValue);
 	ffIntervalValue = ffIntervalBuyValue - ffIntervalSellValue;
 	
 	Plot( abs(ffIntervalValue), 
@@ -154,7 +149,7 @@ if (ffMaEnabled) {
 	PlotShapes( Buy * shapeUpArrow, colorGreen, 0, Min(L, O)); 
 }
 
-stMasterChartSignalReady(chartId);
 
-t1 = GetPerformanceCounter();
-"Foreign price: " + (t1 - t0) + " ms\n";
+_t1 = GetPerformanceCounter();
+_TRACE(Name() + " Foreign price: " + Int(_t1 - _t0) + " ms");
+

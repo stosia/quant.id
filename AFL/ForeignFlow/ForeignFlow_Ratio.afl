@@ -28,14 +28,12 @@
  * Contributors:
  *  - 
  */
+_t0 = GetPerformanceCounter();
+
 #include_once <..\Quant.id\AFL\Tools.afl>
 #include_once <..\Quant.id\AFL\Common.afl>
 #include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 
-t0 = GetPerformanceCounter();
-
-_N(chartId = "ForeignFlow01");
-stSlaveChartWaitReady(chartId, 3);
 
 //
 // Foreign Ratio adalah ratio nilai transaksi asing terhadap total nilai
@@ -46,10 +44,11 @@ _SECTION_BEGIN("Foreign Ratio");
 	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
 	stSetBackgroundSubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
 	
-	intValue = StaticVarGet("intervalValue");
+	ffIntSellValue = stGetFFIntervalSellValue();
+	ffIntBuyValue = stGetFFIntervalBuyValue();
 	
-	ffIntBuyValue = StaticVarGet("ffIntervalBuyValue");
-	ffIntSellValue = StaticVarGet("ffIntervalSellValue");
+	intValue = stGetIntervalValue();
+	
 
 	ffIntValue = Max(ffIntBuyValue, ffIntSellValue);
 	ffNetValue = abs(ffIntBuyValue - ffIntSellValue);
@@ -120,5 +119,5 @@ _SECTION_BEGIN("Foreign Ratio");
 		  0 );
 _SECTION_END();
 
-t1 = GetPerformanceCounter();
-Name() + " Foreign ratio: " + (t1 - t0) + " ms\n";
+_t1 = GetPerformanceCounter();
+_TRACE(Name() + " Foreign ratio: " + Int(_t1 - _t0) + " ms");

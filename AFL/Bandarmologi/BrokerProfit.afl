@@ -28,8 +28,9 @@
  * Contributors:
  *  - 
  */
+_t0 = GetPerformanceCounter();
 
-#include_once <..\Quant.id\AFL\Tools.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\Bandarmologi.afl>
 
 _N( chartId = "BrokerDetails01" );
 stSlaveChartWaitReady(chartId, 10);
@@ -39,7 +40,11 @@ _SECTION_BEGIN("Net");
 	
 	stSetBackgroundTitle(brokerName + ": Cumulative P/L");
 	
-	brokerProfit = StaticVarGet("brokerProfit");
+	stBdGetBrokerAveragePrice(brokerName);
+	brokerProfit = stBrokerProfit / MILYAR;
 	
 	Plot(stAutoPrec(brokerProfit), "Cumulative P/L (b)", colorLightBlue, styleLine | styleThick);
 _SECTION_END();
+
+_t1 = GetPerformanceCounter();
+_TRACE( Name() + " Broker profit " + brokerName + ": " + (_t1 - _t0) + " ms");

@@ -28,21 +28,20 @@
  * Contributors:
  *  - 
  */
+_t0 = GetPerformanceCounter();
+
 #include_once <..\Quant.id\AFL\Tools.afl>
 #include_once <..\Quant.id\AFL\Common.afl>
 #include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 
-t0 = GetPerformanceCounter();
 
-_N(chartId = "ForeignFlow01");
-stSlaveChartWaitReady(chartId, 3);
 
 _SECTION_BEGIN("Foreign Net");
 	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
 	stSetBackgroundSubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
 	
-	B = StaticVarGet("ffIntervalBuyValue");
-	S = StaticVarGet("ffIntervalSellValue");
+	B = stGetFFIntervalBuyValue();
+	S = stGetFFIntervalSellValue();
 
 	bcolor = ColorBlend( colorBlueGrey, GetChartBkColor(), 0.5  );
 	scolor = ColorBlend( colorLightOrange, GetChartBkColor(), 0.5  );
@@ -75,5 +74,5 @@ _SECTION_BEGIN("Foreign Net");
 	
 _SECTION_END();
 
-t1 = GetPerformanceCounter();
-Name() + " Foreign net: " + (t1 - t0) + " ms\n";
+_t1 = GetPerformanceCounter();
+_TRACE(Name() + " Foreign net: " + Int(_t1 - _t0) + " ms");

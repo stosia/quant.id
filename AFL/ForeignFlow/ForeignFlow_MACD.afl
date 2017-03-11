@@ -28,6 +28,8 @@
  * Contributors:
  *  - 
  */
+_t0 = GetPerformanceCounter();
+
 #include_once <..\Quant.id\AFL\Tools.afl>
 #include_once <..\Quant.id\AFL\Common.afl>
 #include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
@@ -72,3 +74,5 @@ _SECTION_BEGIN("Foreign MACD");
 	
 _SECTION_END();
 
+_t1 = GetPerformanceCounter();
+_TRACE(Name() + " Foreign MACD: " + Int(_t1 - _t0) + " ms");

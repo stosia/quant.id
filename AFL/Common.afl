@@ -42,21 +42,21 @@
 //
 function stGetIntervalValue()
 {
-	stConnectDatabase();
-
 	if (Interval() < inDaily) {
-		intVal = odbcGetArraySQL(" SELECT int_value, dtime " + 
-								 " FROM v_adj_intraday_foreign " +
-								 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+		_N( sql = " SELECT int_value, dtime " + 
+				  " FROM v_adj_intraday_foreign " +
+				  " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
 	} else if (Interval() >= inDaily) {
 		if (Interval() > inDaily) {
-			printf("** WARNING **\nInterval greater than daily is incorrect!\n");
+			stAlert("** WARNING **\nInterval greater than daily is incorrect!\n");
 		}
 		
-		intVal = odbcGetArraySQL(" SELECT DAY_VALUE, dtime " + 
-								 " FROM v_adj_intraday_foreign " +
-								 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC") / MILYAR;
+		_N( sql = " SELECT DAY_VALUE, dtime " + 
+				  " FROM v_adj_intraday_foreign " +
+				  " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
 	}
+	
+	intVal = stCachedSQL("stIntervalValue", sql) / MILYAR;
 	
 	return intVal;
 }

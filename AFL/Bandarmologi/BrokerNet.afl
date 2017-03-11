@@ -28,21 +28,26 @@
  * Contributors:
  *  - 
  */
+_t0 = GetPerformanceCounter();
 
-#include_once <..\Quant.id\AFL\Tools.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\Bandarmologi.afl>
 
 _N( chartId = "BrokerDetails01" );
 stSlaveChartWaitReady(chartId, 10);
 
 _SECTION_BEGIN("Net");
-	brokerName = StaticVarGetText("brokerName");
+	_N(brokerName = StaticVarGetText("brokerName"));
 	
 	stSetBackgroundTitle(brokerName + ": Transactions");
 	
-	balance = StaticVarGet("brokerBalance");
+	balance = stBdGetBrokerCumValue(brokerName);
+	
 	net = Balance - Ref(Balance, -1);
 	dynamic_color = IIf(net >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), 
 								  ColorBlend(colorLightOrange, GetChartBkColor(), 0.5));
 	Plot(stAutoPrec(abs(net)), "Net " + WriteIf(net >= 0, "Buy", "Sell"), dynamic_color, 
 		 styleHistogram | styleThick, Null, Null, 0, 0, 5);
 _SECTION_END();
+
+_t1 = GetPerformanceCounter();
+_TRACE( Name() + " Broker net " + brokerName + ": " + (_t1 - _t0) + " ms");
