@@ -45,7 +45,7 @@ _SECTION_BEGIN("Price");
 _SECTION_END();
 
 
-_SECTION_BEGIN("Bandarmologi Detail");
+_SECTION_BEGIN("Top Brokers");
 	// Init bandarmologi as master
 	stBdInit(True);
 
@@ -59,17 +59,13 @@ _SECTION_BEGIN("Bandarmologi Detail");
 	     Null, Null, 0, -5, 3);
 
 	// Plot top buyers and sellers
-	if (stBdParamTopCount > 0) stBdPlotBuyer(0);
-	if (stBdParamTopCount > 1) stBdPlotBuyer(1);
-	if (stBdParamTopCount > 2) stBdPlotBuyer(2);
-	if (stBdParamTopCount > 3) stBdPlotBuyer(3);
-	if (stBdParamTopCount > 4) stBdPlotBuyer(4);
-
-	if (stBdParamTopCount > 4) stBdPlotSeller(4);
-	if (stBdParamTopCount > 3) stBdPlotSeller(3);
-	if (stBdParamTopCount > 2) stBdPlotSeller(2);
-	if (stBdParamTopCount > 1) stBdPlotSeller(1);
-	if (stBdParamTopCount > 0) stBdPlotSeller(0);
+	for (i=0; i<5; ++i) {
+		if (stBdParamTopCount > i) stBdPlotBuyer(i);
+	}
+	
+	for (i=4; i>=0; --i) {
+		if (stBdParamTopCount > i) stBdPlotSeller(i);
+	}
 
 	// Add custom broker, separated by comma.
 	// E.g.: "YP,PD"
