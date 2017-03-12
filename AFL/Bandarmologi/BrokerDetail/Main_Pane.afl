@@ -31,30 +31,20 @@
 
 _t0 = GetPerformanceCounter();
 
-#include_once <..\Quant.id\AFL\Bandarmologi\Bandarmologi.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\BrokerDetail\Common.afl>
 
-_N(chartId = "BrokerDetail");
-
-// Get broker name from parameter
-_SECTION_BEGIN("Broker Detail");
-	_N(brokers = ParamStr("Broker", ""));
-_SECTION_END();
-
-
-_N(brokerName = StrExtract(brokers, 0));
-StaticVarSetText("brokerName", brokerName);
-stMasterChartSignalReady(chartId);
-
+// Init broker detail pane as master
+stInitBrokerDetail(True);
 
 //
 // Title
 //
 stSetBackgroundTitle(Name());
-stSetBackgroundSubtitle("Broker Detail: " + brokers);
-if (brokers == "") {
+stSetBackgroundSubtitle("Broker Detail: " + stBrokerName);
+if (stBrokerName == "") {
 	stSetBackgroundSubsubtitle("Please set broker from parameters");
 } else {
-	stSetBackgroundSubsubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
+	stSetBackgroundSubsubtitle(QID_VERSION_LINE);
 }
 
 //
@@ -65,7 +55,7 @@ _SECTION_BEGIN("Price");
 	LowestLow = LowestVisibleValue(Low) * 0.98;
 
 	SetChartOptions(0,chartShowArrows|chartShowDates);
-	_N(Title = StrFormat("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
+	_N(Title = StrFormat(QID_VERSION_LINE + " -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
 
 	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.6)));
 	
@@ -87,7 +77,7 @@ _SECTION_BEGIN("Broker Details");
 	brokerColor = colorBlue;
 
 	// Broker Balance
-	balance = stBdGetBrokerCumValue(brokerName);
+	balance = stBdGetBrokerCumValue(stBrokerName, stBrokerStartDate);
 
 	Plot(stAutoPrec(balance), "Balance (B)", 
 		 colorLightBlue, 
@@ -95,7 +85,7 @@ _SECTION_BEGIN("Broker Details");
 		 Null, Null, 0, 5);
 
 	// Average price and broker's P/L
-	avgPrice = stBdGetBrokerAveragePrice(brokerName);
+	avgPrice = stBdGetBrokerAveragePrice(stBrokerName);
 	brokerProfit = stBrokerProfit / MILYAR;
 
 	Plot( Prec(avgPrice, 1), 
@@ -111,4 +101,4 @@ _SECTION_END();
 
 
 _t1 = GetPerformanceCounter();
-_TRACE( Name() + " Broker details " + brokerName + ": " + (_t1 - _t0) + " ms");
+_TRACE( Name() + " Broker details " + stBrokerName + ": " + (_t1 - _t0) + " ms");

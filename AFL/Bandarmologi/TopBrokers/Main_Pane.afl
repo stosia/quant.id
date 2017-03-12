@@ -30,7 +30,7 @@
  */
 _t0 = GetPerformanceCounter();
 
-#include_once <..\Quant.id\AFL\Tools.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\Common.afl>
 
 stBdTopBrokers = "";
 stBdBrokerCnt = 0;
@@ -57,18 +57,6 @@ stBdSellerColors[2] = colorGreen;
 stBdSellerColors[3] = colorDarkTeal;
 stBdSellerColors[4] = colorDarkRed;
 stBdSellerColors[5] = colorPink;
-
-//
-// Calculate start date, that is "days" prior to last date
-//
-function stBdGetStartDate(days)
-{
-	cur_dn = SelectedValue(DateNum());
-	latest_date = DateTimeConvert(2, cur_dn);
-	
-	sd = DateTimeAdd(latest_date, -days, inDaily);
-	return stDateTimeToISODate(sd);
-}
 
 //
 // Init top brokers chart
@@ -163,9 +151,9 @@ function stBdGetTopSellerName(index)
 //
 function stBdPlotBroker(brokerName, is_buyer, index)
 {
-	global stBdParamAbs;
+	global stBdParamAbs, stBdStartBalanceDate;
 	
-	balance = stBdGetBrokerCumValue(brokerName);
+	balance = stBdGetBrokerCumValue(brokerName, stBdStartBalanceDate);
 	
 	if (is_buyer) {
 		color = stBdBuyerColors[index];
@@ -212,7 +200,7 @@ function stBdPlotSeller(index)
 
 
 _SECTION_BEGIN("Price");
-	_N(Title = StrFormat("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
+	_N(Title = StrFormat(QID_VERSION_LINE + " -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
 	
 	SetChartOptions(0, chartShowDates);
 	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.3)));
@@ -229,8 +217,8 @@ _SECTION_BEGIN("Top Brokers");
 
 	// Background text
 	stSetBackgroundTitle(Name());
-	stSetBackgroundSubtitle("Bandarmologi " + stBdParamDays + "/" + stBdParamTopCount);
-	stSetBackgroundSubsubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
+	stSetBackgroundSubtitle("Top Brokers " + stBdParamDays + "/" + stBdParamTopCount);
+	stSetBackgroundSubsubtitle(QID_VERSION_LINE);
 	
 	// Y-axis
 	Plot(0, "0", colorGrey40, styleLine | styleThick | styleNoLabel, 

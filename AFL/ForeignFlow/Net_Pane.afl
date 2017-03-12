@@ -38,7 +38,7 @@ _t0 = GetPerformanceCounter();
 
 _SECTION_BEGIN("Foreign Net");
 	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
-	stSetBackgroundSubtitle("Quant.id v" + QID_VERSION_STR + " ©2017 Stosia");
+	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
 	B = stGetFFIntervalBuyValue();
 	S = stGetFFIntervalSellValue();

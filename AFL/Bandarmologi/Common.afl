@@ -32,13 +32,23 @@
 #include_once <..\Quant.id\AFL\Tools.afl>
 
 //
-// Get broker's cummulative ownership value in Milyar Rp
+// Calculate start date, that is "days" prior to last date
 //
-function stBdGetBrokerCumValue(broker_name)
+function stBdGetStartDate(days)
 {
-	global stBdStartBalanceDate;
+	cur_dn = SelectedValue(DateNum());
+	latest_date = DateTimeConvert(2, cur_dn);
 	
-	_N(start_date_str = stBdStartBalanceDate);
+	sd = DateTimeAdd(latest_date, -days, inDaily);
+	return stDateTimeToISODate(sd);
+}
+
+
+//
+// Get broker's cummulative buy value in Milyar Rp
+//
+function stBdGetBrokerCumBuyValue(broker_name, start_date_str)
+{
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
 	} else {
@@ -47,18 +57,71 @@ function stBdGetBrokerCumValue(broker_name)
 		}
 	}
 	
-	_N( sql = " SELECT @running_total := @running_total + int_net_value AS balance, \n" + 
+	_N( sql = " SELECT @running_total := @running_total + (int_buy_value / 1000000000.0) AS cum_buy, \n" + 
 			  "        dtime \n" + 
-			  " FROM  v_adj_intraday_broker2 \n" +
+			  " FROM  v_adj_intraday_broker \n" +
 			  "	JOIN (SELECT @running_total := 0) r \n" + 
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
 		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
 		      " ORDER BY dtime Asc" );
 	
-	varName = "bdcum-" + broker_name;
-	result = stCachedSQL(varName, sql) / MILYAR;
+	varName = "bdcumbuy-" + broker_name;
+	result = stCachedSQL(varName, sql);
 	
 	return result;
+}
+
+//
+// Get broker's cummulative sell value in Milyar Rp
+//
+function stBdGetBrokerCumSellValue(broker_name, start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	_N( sql = " SELECT @running_total := @running_total + (int_sell_value / 1000000000.0) AS cum_sell, \n" + 
+			  "        dtime \n" + 
+			  " FROM  v_adj_intraday_broker \n" +
+			  "	JOIN (SELECT @running_total := 0) r \n" + 
+		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+		      " ORDER BY dtime Asc" );
+	
+	varName = "bdcumsell-" + broker_name;
+	result = stCachedSQL(varName, sql);
+	
+	return result;
+}
+
+//
+// Get broker's cummulative ownership value in Milyar Rp
+//
+function stBdGetBrokerCumValue(broker_name, start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	// Randomize the order to get better parallelism
+	if (LastValue(Random()) < 0.5) {
+		cumBuy = stBdGetBrokerCumBuyValue(broker_name, start_date_str);
+		cumSell = stBdGetBrokerCumSellValue(broker_name, start_date_str);
+	} else {
+		cumSell = stBdGetBrokerCumSellValue(broker_name, start_date_str);
+		cumBuy = stBdGetBrokerCumBuyValue(broker_name, start_date_str);
+	}
+
+	balance = cumBuy - cumSell;
+	return balance;
 }
 
 //
@@ -111,5 +174,4 @@ function stBdGetBrokerAveragePrice(broker_name)
 	stBrokerProfit = stProfit;
 	
 	return avgPrice;
-
 }

@@ -30,24 +30,42 @@
  */
 _t0 = GetPerformanceCounter();
 
-#include_once <..\Quant.id\AFL\Bandarmologi\Bandarmologi.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\BrokerDetail\Common.afl>
 
-_N( chartId = "BrokerDetail" );
-stSlaveChartWaitReady(chartId, 10);
+// Init broker detail pane as slave
+stInitBrokerDetail(False);
 
 _SECTION_BEGIN("Net");
-	_N(brokerName = StaticVarGetText("brokerName"));
+	stSetBackgroundTitle(Name() + ": " + stBrokerName + " Transactions");
+	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	stSetBackgroundTitle(brokerName + ": Transactions");
+	// Randomize the order to get better parallelism
+	if (LastValue(Random()) < 0.5) {
+		cumBuy = stBdGetBrokerCumBuyValue(stBrokerName, stBrokerStartDate);
+		cumSell = stBdGetBrokerCumSellValue(stBrokerName, stBrokerStartDate);
+	} else {
+		cumSell = stBdGetBrokerCumSellValue(stBrokerName, stBrokerStartDate);
+		cumBuy = stBdGetBrokerCumBuyValue(stBrokerName, stBrokerStartDate);
+	}
 	
-	balance = stBdGetBrokerCumValue(brokerName);
+	intBuy = cumBuy - Ref(cumBuy, -1);
+	intSell = cumSell - Ref(cumSell, -1);
 	
+	balance = cumBuy - cumSell;
 	net = Balance - Ref(Balance, -1);
-	dynamic_color = IIf(net >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), 
+	
+	// Broker's buy/sell
+	dynamic_color2 = IIf(net >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), 
 								  ColorBlend(colorLightOrange, GetChartBkColor(), 0.5));
-	Plot(stAutoPrec(abs(net)), "Net " + WriteIf(net >= 0, "Buy", "Sell"), dynamic_color, 
+	Plot(stAutoPrec(abs( IIf(net >= 0, intBuy, intSell) )), "Broker " + WriteIf(net >= 0, "Buy", "Sell"), dynamic_color2, 
 		 styleHistogram | styleThick, Null, Null, 0, 0, 5);
+		 
+	// Net buy/sell
+	dynamic_color = IIf(net >= 0, colorBlue,  colorOrange);
+	Plot(stAutoPrec(abs(net)), "Net " + WriteIf(net >= 0, "Buy", "Sell"), dynamic_color, 
+		 styleHistogram | styleThick, Null, Null, 0, 1, 5);
+	
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
-_TRACE( Name() + " Broker net " + brokerName + ": " + (_t1 - _t0) + " ms");
+_TRACE( Name() + " Broker net " + stBrokerName + ": " + (_t1 - _t0) + " ms");

@@ -28,40 +28,43 @@
  * Contributors:
  *  - 
  */
+#include_once <..\Quant.id\AFL\Bandarmologi\Common.afl>
 
-#include_once <..\Quant.id\AFL\Retailogi\Retailogi.afl>
-#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
-#include_once <..\Quant.id\AFL\Common.afl>
+// Global vars
+// Broker name which details are being displayed
+_N(stBrokerName = "");
 
-stSetBackgroundTitle(Name());
-stSetBackgroundSubtitle("Retailogi");
-stSetBackgroundSubsubtitle(QID_VERSION_LINE);
+// Date to calculate broker statistics
+_N(stBrokerStartDate = "");
 
-
-_SECTION_BEGIN("Price");
-	_N(Title = StrFormat(QID_VERSION_LINE + " -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
+//
+// Init broker detail pane, either as master or as slave
+//
+function stInitBrokerDetail(as_master)
+{
+	global brokerName, stBrokerStartDate;
 	
-	SetChartOptions(0, chartShowDates);
-	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.3)));
-	Plot( C, "Close",  
-		  IIf(C >= Open, ColorBlend(GetChartBkColor(), colorGreen, 0.5), 
-		                 ColorBlend(GetChartBkColor(), colorBrown, 0.5)), 
-		  GetPriceStyle() | styleOwnScale, Null, Null, 0, 1); 
-_SECTION_END();
-
-
-_SECTION_BEGIN("Bandarmologi Summary");
-	// Retail intervalue and its cummulative value
-	rtlCum = stRtGetRetailCumValue();
+	_N(chartId = "BrokerDetail");
 	
-	// Institutional 
-	instCum = stRtGetNonRetailCumValue();
+	if (as_master) {
 	
-	// Foreign
-	ffBalance = stGetFFBalance();
+		// Get broker name from parameter
+		_SECTION_BEGIN("Broker Detail");
+			_N(stBrokerName = ParamStr("Broker Code", ""));
+			startDate = ParamDate("Start Date", "2017-01-01", 0);
+			
+			_N(stBrokerStartDate = stDateNumToISODate(startDate));
+		_SECTION_END();
 	
-	Plot(Prec(instCum,1), "Bandar", colorBlue, styleLine | styleThick, Null, Null, 0, 5);
-	Plot(Prec(ffBalance,1), "Foreign", colorOrange, styleLine | styleThick, Null, Null, 0, 5);
-	Plot(Prec(rtlCum,1), "Retail", colorGreen, styleLine | styleThick, Null, Null, 0, 5);
-_SECTION_END();
-
+		// And set to static var to be read by slave panes
+		StaticVarSetText("stBrokerName", stBrokerName);
+		StaticVarSetText("stBrokerStartDate", stBrokerStartDate);
+		stMasterChartSignalReady(chartId);
+	
+	} else {
+		stSlaveChartWaitReady(chartId, 10);
+		
+		_N(stBrokerName = StaticVarGetText("stBrokerName"));
+		_N(stBrokerStartDate = StaticVarGetText("stBrokerStartDate"));
+	}
+}

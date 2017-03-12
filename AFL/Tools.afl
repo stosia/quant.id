@@ -1,23 +1,36 @@
 /* 
  * Copyright (C)2017 PT. Stosia Teknologi Investasi
  *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini dilisensikan kepada Anda, bukan  Anda miliki.  Pemilik file ini
+ * adalah pemegang  hak cipta ("copyright holder") di atas. Gunakanlah file
+ * ini sesuai dengan lisensi yang telah ditetapkan untuk file ini.
+ *
  * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
  * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
  * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
- * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
- * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
+ * modifikasi atau karya tersebut kepada publik. Hal ini untuk menjaga agar
+ * pengetahuan yang ada di sini menjadi lebih berkembang  di masa mendatang 
+ * untuk kemajuan kita bersama.
  *
  * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
- * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
- * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
- * produk yang dijual secara komersial, karena hal itu tidak etis.
+ * profit di pasar saham baik secara perorangan atau organisasi, asal tidak
+ * jahat. Sebagai tambahan permintaan, kami menghimbau untuk TIDAK  menjual
+ * kode/file  ini secara  apa adanya  atau dalam bundel  produk yang dijual
+ * secara komersial, karena hal itu tidak etis.
  *
  * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
  * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
  * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ * Contributors:
+ *  - 
  */
  
 _N(QID_VERSION_STR = "0.9");
+_N(QID_VERSION_LINE = "Quant.id v" + QID_VERSION_STR + " ©2017 Stosia TI");
 
 MILYAR = 1000000000.0;
 
@@ -27,18 +40,17 @@ Open = Ref(Close, -1);
 ST_SQL_CACHING_ENABLED = True;
 
 // Error messages
-stAlerts = "";
+stAlertCnt = 0;
 
 //
 // Display MessageBox in the chart
 //
-function stMessageBox( txt, color, bkcolor )
+function stMessageBoxY( txt, color, bkcolor, y )
 {
 	_N(fontFace = "Arial");
 	fontSize = 12;
 	
 	x = Status("pxwidth")/2;
-	y = 20;
 	
 	GfxSetOverlayMode(0);
 	GfxSelectFont(fontFace, fontSize);
@@ -51,18 +63,23 @@ function stMessageBox( txt, color, bkcolor )
 }
 
 //
+// Display MessageBox in the chart
+//
+function stMessageBox( txt, color, bkcolor )
+{
+	stMessageBoxY(txt, color, bkcolor, 20);
+}
+
+//
 // Display error message
 //
 function stAlert(txt)
 {
-	global stAlerts;
+	global stAlertCnt;
 	
-	if (StrLen(stAlerts) == 0)
-		_N(stAlerts = txt);
-	else
-		_N(stAlerts = stAlerts + "  \n" + txt);
-		
-	stMessageBox(stAlerts, colorWhite, colorRed);
+	stAlertCnt += 1;
+	stMessageBoxY(txt, colorWhite, colorRed, stAlertCnt*20 );
+	
 }
 
 
