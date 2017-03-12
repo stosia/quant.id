@@ -33,7 +33,7 @@ _t0 = GetPerformanceCounter();
 
 #include_once <..\Quant.id\AFL\Bandarmologi\Bandarmologi.afl>
 
-_N(chartId = "BrokerDetails01");
+_N(chartId = "BrokerDetail");
 
 // Get broker name from parameter
 _SECTION_BEGIN("Broker Detail");
