@@ -75,8 +75,8 @@ _SECTION_END();
 // Foreign transaction value, drawn over the transaction value above
 //
 _SECTION_BEGIN("Fg Val(B)");
-	ffIntervalBuyValue = stGetFFIntervalBuyValue();
 	ffIntervalSellValue = stGetFFIntervalSellValue();
+	ffIntervalBuyValue = stGetFFIntervalBuyValue();
 	
 	ffIntervalValue = ffIntervalBuyValue - ffIntervalSellValue;
 	
@@ -95,18 +95,18 @@ _SECTION_END();
 //
 // Foreign accummulation (balance)
 //
-_SECTION_BEGIN("Fg Cum(B)");
-	ffBalance = stGetFFBalanceFromInterval(ffIntervalValue);
+_SECTION_BEGIN("Fg Holding");
+	ffHolding = stGetFFHolding();
 	
-	ffBalanceMin = LowestVisibleValue(ffBalance);
-	ffBalanceMax = HighestVisibleValue(ffBalance);
+	ffHoldingMinScale = LowestVisibleValue(ffHolding);
+	ffHoldingMaxScale = HighestVisibleValue(ffHolding) * 1.01;
 	
-	Plot( stAutoPrec(ffBalance), 
-		  "Balance(B)", 
+	Plot( Int(ffHolding), 
+		  "Fg Holding", 
 		  colorRed, 
 		  styleLine | styleOwnScale | styleThick, 
-		  ffBalanceMin, 
-		  ffBalanceMax, 
+		  ffHoldingMinScale, 
+		  ffHoldingMaxScale, 
 		  Null, 
 		  2); 
 _SECTION_END();
@@ -115,15 +115,10 @@ _SECTION_END();
 // Foreign average price
 //
 _SECTION_BEGIN("Fg Avg");
-	//ffAvg = stGetFFAverageFromIntervalNet(ffIntervalValue);
-	typ = stTypicalPrice();
-	buyValue = ffIntervalBuyValue * MILYAR;
-	sellValue = ffIntervalSellValue * MILYAR;
-	
-	ffAvg = stGetAvgPrice(buyValue, buyValue/typ, sellValue, sellValue / typ);
+	ffAvg = stGetFFAverage();
 	ffProfit = stProfit;
 	
-	Plot( ffAvg, "Foreign Avg", colorGreen, styleDashed | styleThick | styleNoLabel); 
+	Plot( ffAvg, "Fg Avg", colorGreen, styleDashed | styleThick | styleNoLabel); 
 _SECTION_END();
 
 //
@@ -134,17 +129,17 @@ _SECTION_BEGIN("Foreign MA");
 	ffMAPeriod1 = Param("Foreign MA Period 1", 5, 1, 100);
 	ffMAPeriod2 = Param("Foreign MA Period 2", 20, 1, 100);
 	
-	ffMA1 = MA(ffBalance, ffMAPeriod1);
-	ffMA2 = MA(ffBalance, ffMAPeriod2);
+	ffMA1 = MA(ffHolding, ffMAPeriod1);
+	ffMA2 = MA(ffHolding, ffMAPeriod2);
 	
 	if (ffMaEnabled) {
-		Plot( ffMA1, "Fg MA" + ffMAPeriod1, colorOrange, styleLine | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
-		Plot( ffMA2, "Fg MA" + ffMAPeriod2, colorOrange, styleDashed | styleOwnScale | styleNoLabel, ffBalanceMin, ffBalanceMax, Null, 2);
+		Plot( ffMA1, "Fg MA" + ffMAPeriod1, colorOrange, styleLine | styleOwnScale | styleNoLabel, ffHoldingMinScale, ffHoldingMaxScale, Null, 2);
+		Plot( ffMA2, "Fg MA" + ffMAPeriod2, colorOrange, styleDashed | styleOwnScale | styleNoLabel, ffHoldingMinScale, ffHoldingMaxScale, Null, 2);
 	}
 _SECTION_END();
 
 if (ffMaEnabled) {
-	Buy = Cross( ffMA1, ffMA2) && (ffBalance >= ffMA1) && (C < ffAvg) && (ffIntervalValue > 1);
+	Buy = Cross( ffMA1, ffMA2) && (ffHolding >= ffMA1) && (C < ffAvg) && (ffIntervalValue > 1);
 	//Plot(Buy, "Buy", colorBlack, styleNoLine | styleNoLabel | styleOwnScale);
 	PlotShapes( Buy * shapeUpArrow, colorGreen, 0, Min(L, O)); 
 }

@@ -40,8 +40,8 @@ _SECTION_BEGIN("Foreign Net");
 	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	B = stGetFFIntervalBuyValue();
 	S = stGetFFIntervalSellValue();
+	B = stGetFFIntervalBuyValue();
 
 	bcolor = ColorBlend( colorBlueGrey, GetChartBkColor(), 0.5  );
 	scolor = ColorBlend( colorLightOrange, GetChartBkColor(), 0.5  );

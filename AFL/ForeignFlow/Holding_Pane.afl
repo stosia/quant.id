@@ -35,44 +35,61 @@ _t0 = GetPerformanceCounter();
 #include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 
 
-_SECTION_BEGIN("Foreign MACD");
-
-	maPeriod1 = Param("EMA 1", 12, 1, 200, 1);
-	maPeriod2 = Param("EMA 2", 26, 1, 200, 1);
-	maPeriod3 = Param("EMA 3", 9, 1, 200, 1);
-
-	stSetBackgroundTitle(StrFormat(Name() + " Foreign MACD(%g, %g, %g)", maPeriod1, maPeriod2, maPeriod3));
+_SECTION_BEGIN("Foreign Holding");
+	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	ffHolding = stGetFFHolding();
+	ffHolding = stGetFFHolding() / MILYAR;
 	
-	// For intraday chart, only show MACD for today
-	if (Interval() < inDaily) {
-		Dn = DateNum();
-		Last_DN = Dn[BarCount-1];
-										 
-		ffHolding = IIf(Dn == Last_DN, ffHolding, 0);
-	}
+	Plot(stAutoPrec(ffHolding), 
+		 "Foreign Holdings (B shares)", colorRed, 
+		 styleLine | styleThick,
+		 null,
+		 null,
+		 0,
+		 1,
+		 2);
 	
-	EMA_L = EMA(ffHolding, maPeriod2);
-	EMA_S = EMA(ffHolding, maPeriod1);
+	Plot(0, "0", colorLightGrey, styleThick | styleNoLabel | styleNoTitle, Null, Null, 0, 0);
 	
-	F_MACD = EMA_S - EMA_L;
-	Sig = EMA(F_MACD, maPeriod3);
+	dt = DateTime();
 	
-	Plot(F_MACD, "MACD", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleLine | styleThick);
-	Plot(Sig, "Signal", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleDashed);
+	//
+	// Calculate what is lowest porto value and when
+	//
+	arr = Lowest(ffHolding);
+	ffLowestValue = arr[BarCount-1];
+	arr = LowestBars(ffHolding);
+	lBars = arr[BarCount-1];
+	lPos = BarCount - 1 - lBars;
+	_N(lWhen = stDateTimeToISODateTime(dt[lPos]));
 	
-	Hist = F_MACD - Sig;
-	AHist = abs(Hist);
-	Plot(AHist, "Hist", IIf(Hist >= 0, colorLightBlue, colorLightOrange), styleHistogram | styleOwnScale, 0, HighestVisibleValue(AHist) * 2, 0, 0, 4);
+	//
+	// Calculate what is highest porto value and when
+	//
+	arr = Highest(ffHolding);
+	ffHighestValue = arr[BarCount-1];
+	arr = HighestBars(ffHolding);
+	hBars = arr[BarCount-1];
+	hPos = BarCount - 1 - hBars;
+	_N(hWhen = stDateTimeToISODateTime(dt[hPos]));
 	
-	Buy = Cross(F_MACD, Sig);
-	Sell = Cross(Sig, F_MACD);
-	PlotShapes( Buy * shapeUpArrow, colorGreen, 0, Sig); 
-	PlotShapes( Sell * shapeDownArrow, colorRed, 0, F_MACD);
+	//
+	// Write lowest/highest info
+	//
+	_N(lMsg = "Lowest: " + stAutoPrec(ffLowestValue) + " B on " + lWhen + ", highest: " + stAutoPrec(ffHighestValue) + " B on " + hWhen);
+	stMessageBoxYFs(lMsg, colorGrey40, GetChartBkColor(), 0, 10);
+	
+	//
+	// Plot shapes when graph is in its lowest/highest value
+	//
+	isTop = ffHolding == ffHighestValue;
+	isBottom = ffHolding == ffLowestValue;
+	
+	PlotShapes( isTop * shapeSmallUpTriangle, colorGreen, 0, ffHolding); 
+	PlotShapes( isBottom * shapeSmallDownTriangle, colorRed, 0, ffHolding); 
 	
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
-_TRACE(Name() + " Foreign MACD: " + Int(_t1 - _t0) + " ms");
+_TRACE(Name() + " Foreign holding: " + Int(_t1 - _t0) + " ms");

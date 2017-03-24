@@ -42,13 +42,19 @@ ST_SQL_CACHING_ENABLED = True;
 // Error messages
 stAlertCnt = 0;
 
+// Chart wants all bars otherwise holdings balance etc will be wrong
+if (Status("action") == actionIndicator) {
+	SetBarsRequired( sbrAll, -1 );
+} else {
+	_TRACE("Not all bars calculated");
+}
+
 //
 // Display MessageBox in the chart
 //
-function stMessageBoxY( txt, color, bkcolor, y )
+function stMessageBoxYFs( txt, color, bkcolor, y, fontSize )
 {
 	_N(fontFace = "Arial");
-	fontSize = 12;
 	
 	x = Status("pxwidth")/2;
 	
@@ -60,6 +66,14 @@ function stMessageBoxY( txt, color, bkcolor, y )
 	GfxSetBkMode(2); // opaque
 	GfxTextOut( txt, x,  y);
 
+}
+
+//
+// Display MessageBox in the chart
+//
+function stMessageBoxY( txt, color, bkcolor, y )
+{
+	stMessageBoxYFs(txt, color, bkcolor, y, 12);
 }
 
 //
@@ -459,6 +473,26 @@ function stLastDayValue(array)
 	
 	return result;
 }
+
+//
+// Get total number of shares that is owned at any time. This is 
+// accummulation of buy and sell activities of the investor.
+//
+function stGetHolding(buyShares, sellShares)
+{
+	netShares = buyShares - sellShares;
+	rawHolding = Cum(netShares);
+	
+	lowestHoldingArr = Lowest(rawHolding);
+	lowestHoldingValue = lowestHoldingArr[BarCount-1];
+	if (lowestHoldingValue < 0)
+		holding = rawHolding + (-lowestHoldingValue);
+	else
+		holding = rawHolding;
+		
+	return holding;
+}
+
 
 //
 // Calculate average price from buy and sell values.
