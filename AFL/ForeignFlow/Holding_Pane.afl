@@ -39,10 +39,10 @@ _SECTION_BEGIN("Foreign Holding");
 	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	ffHolding = stGetFFHolding() / MILYAR;
+	ffHolding = stGetFFHolding() / 100;
 	
 	Plot(stAutoPrec(ffHolding), 
-		 "Foreign Holdings (B shares)", colorRed, 
+		 "Foreign Holdings (Lot)", colorRed, 
 		 styleLine | styleThick,
 		 null,
 		 null,
@@ -77,7 +77,7 @@ _SECTION_BEGIN("Foreign Holding");
 	//
 	// Write lowest/highest info
 	//
-	_N(lMsg = "Lowest: " + stAutoPrec(ffLowestValue) + " B on " + lWhen + ", highest: " + stAutoPrec(ffHighestValue) + " B on " + hWhen);
+	_N(lMsg = "Lowest: " + stAutoPrec(ffLowestValue) + " lot on " + lWhen + ", highest: " + stAutoPrec(ffHighestValue) + " lot on " + hWhen);
 	stMessageBoxYFs(lMsg, colorGrey40, GetChartBkColor(), 0, 10);
 	
 	//

@@ -34,45 +34,63 @@ _t0 = GetPerformanceCounter();
 #include_once <..\Quant.id\AFL\Common.afl>
 #include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
 
-
-
-_SECTION_BEGIN("Foreign Net");
+_SECTION_BEGIN("Foreign Realized Profit/Loss");
 	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	S = stGetFFIntervalSellValue();
-	B = stGetFFIntervalBuyValue();
-
-	bcolor = ColorBlend( colorBlueGrey, GetChartBkColor(), 0.5  );
-	scolor = ColorBlend( colorLightOrange, GetChartBkColor(), 0.5  );
-
-	Net = B-S;
-	maxNet = Max(Max(HighestVisibleValue(B), HighestVisibleValue(S)), HighestVisibleValue(abs(Net)));
-	//minNet = LowestVisibleValue(abs(Net));
-	minNet = 0;
+	dummy = stGetFFAverage();
+	ffProfit = stProfit / MILYAR;
 	
-	Plot(stAutoPrec(abs(Net)), "NetPlot", IIf(B >= S, colorBlueGrey, colorLightOrange), 
-		 styleHistogram | styleOwnScale | styleNoTitle, minNet, maxNet, 0, 4, 5);
-	Plot(Net, "Net (B Rp)", IIf(B >= S, colorBlueGrey, colorLightOrange), styleNoDraw | styleOwnScale);
+	Plot(stAutoPrec(ffProfit), 
+		 "Foreign Profit/Loss (B Rp)", colorBlue, 
+		 styleLine | styleThick,
+		 null,
+		 null,
+		 0,
+		 1,
+		 2);
 	
-	//Plot(B, "Buy", bcolor, styleLine | styleNoTitle, minNet, maxNet, 0, 1, 1);
-	//Plot(S, "Sell", scolor, styleLine | styleNoTitle, minNet, maxNet, 0, 1, 1);
-	
-	PlotOHLC( Min(B,S), Min(B,S), Max(B, S), Max(B, S), "BS", 
-			  IIf(Ref(B,1) >= Ref(S,1), bcolor, scolor), 
-			  styleCloud | styleNoLabel | styleNoTitle | styleOwnScale, 
-			  minNet, maxNet, 0, 2, 1);
+	Plot(0, "0", colorLightGrey, styleThick | styleNoLabel | styleNoTitle, Null, Null, 0, 0);
 	
 	
-	/*
-	maper1 = Param("Vol MA Period1", 5, 5, 60);
-	maper2 = Param("Vol MA Period2", 20, 5, 60);
+	dt = DateTime();
 	
-	Plot(MA(Max(B,S), maper1), "MA" + maper1, ColorBlend(colorRed, GetChartBkColor(), 0.5), styleLine, Null, Null, 0, 3);
-	Plot(MA(Max(B,S), maper2), "MA" + maper2, ColorBlend(colorRed, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 3);
-	*/
+	//
+	// Calculate what is lowest porto value and when
+	//
+	arr = Lowest(ffProfit);
+	ffLowestValue = arr[BarCount-1];
+	arr = LowestBars(ffProfit);
+	lBars = arr[BarCount-1];
+	lPos = BarCount - 1 - lBars;
+	_N(lWhen = stDateTimeToISODateTime(dt[lPos]));
+	
+	//
+	// Calculate what is highest porto value and when
+	//
+	arr = Highest(ffProfit);
+	ffHighestValue = arr[BarCount-1];
+	arr = HighestBars(ffProfit);
+	hBars = arr[BarCount-1];
+	hPos = BarCount - 1 - hBars;
+	_N(hWhen = stDateTimeToISODateTime(dt[hPos]));
+	
+	//
+	// Write lowest/highest info
+	//
+	_N(lMsg = "Lowest: Rp " + stAutoPrec(ffLowestValue) + " B on " + lWhen + ", highest: Rp " + stAutoPrec(ffHighestValue) + " B on " + hWhen);
+	stMessageBoxYFs(lMsg, colorGrey40, GetChartBkColor(), 0, 10);
+	
+	//
+	// Plot shapes when graph is in its lowest/highest value
+	//
+	isTop = ffProfit == ffHighestValue;
+	isBottom = ffProfit == ffLowestValue;
+	
+	PlotShapes( isTop * shapeSmallUpTriangle, colorGreen, 0, ffProfit); 
+	PlotShapes( isBottom * shapeSmallDownTriangle, colorRed, 0, ffProfit); 
 	
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
-_TRACE(Name() + " Foreign net: " + Int(_t1 - _t0) + " ms");
+_TRACE(Name() + " Foreign P/L: " + Int(_t1 - _t0) + " ms");

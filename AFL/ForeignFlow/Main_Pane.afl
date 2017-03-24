@@ -95,14 +95,14 @@ _SECTION_END();
 //
 // Foreign accummulation (balance)
 //
-_SECTION_BEGIN("Fg Holding");
-	ffHolding = stGetFFHolding();
+_SECTION_BEGIN("Fg Lot");
+	ffHolding = stGetFFHolding() / 100;
 	
 	ffHoldingMinScale = LowestVisibleValue(ffHolding);
-	ffHoldingMaxScale = HighestVisibleValue(ffHolding) * 1.01;
+	ffHoldingMaxScale = HighestVisibleValue(ffHolding) * 1.02;
 	
-	Plot( Int(ffHolding), 
-		  "Fg Holding", 
+	Plot( ffHolding, 
+		  "Fg Lot", 
 		  colorRed, 
 		  styleLine | styleOwnScale | styleThick, 
 		  ffHoldingMinScale, 

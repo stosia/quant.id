@@ -44,8 +44,8 @@ stAlertCnt = 0;
 
 // Chart wants all bars otherwise holdings balance etc will be wrong
 if (Status("action") == actionIndicator) {
-	SetBarsRequired( sbrAll, -1 );
-} else {
+	SetBarsRequired( sbrAll, sbrAll );
+} else if (Interval() >= inDaily) {
 	_TRACE("Not all bars calculated");
 }
 
@@ -211,7 +211,7 @@ function stSetBackgroundTitle( txt )
 	GfxSetTextAlign( 6 );// center alignment
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
-	GfxTextOut( txt, Status("pxwidth")/2, height/50 - titleFontHeight/8);
+	GfxTextOut( txt, Status("pxwidth")/2, height/15 - titleFontHeight/8);
 }
 
 //
@@ -230,7 +230,7 @@ function stSetBackgroundSubtitle( txt )
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
 	GfxTextOut( txt, Status("pxwidth")/2,  
-				height/50 + titleFontHeight + subtitleFontHeight + spacing);
+				height/15 + titleFontHeight + subtitleFontHeight + spacing);
 }
 
 //
@@ -250,7 +250,7 @@ function stSetBackgroundSubSubtitle( txt )
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
 	GfxTextOut( txt, Status("pxwidth")/2,  
-				height/50 + titleFontHeight + 2*subtitleFontHeight + 
+				height/15 + titleFontHeight + 2*subtitleFontHeight + 
 					2*spacing + subsubtitleFontHeight);
 }
 
@@ -475,121 +475,150 @@ function stLastDayValue(array)
 }
 
 //
+// Intraday version of get holding
+//
+function stGetHoldingIntraday(buyShares, sellShares)
+{
+	dn = DateNum();
+	last_dn = dn[BarCount - 1];
+	
+	netShares = buyShares - sellShares;
+	
+	i = 0;
+	while (i < BarCount) {
+		if (IsEmpty(netShares[i]) || dn[i] != last_dn) {
+			holding[i] = Null;
+			i += 1;
+			continue;
+		}
+		
+		cur_dn = dn[i];
+
+		// Get the lowest value for the day
+		total = netShares[i];
+		lwst = total;
+		for (j = i + 1; j < BarCount && dn[j] == cur_dn; ++j) {
+			total = total + netShares[j];
+			if (total < lwst)
+				lwst = total;
+		}
+		
+		if (lwst < 0) {
+			holding[i] = -lwst + netShares[i];
+		} else {
+			holding[i] = netShares[i];
+		}
+		
+		//_TRACE("" + i + ": " + netShares[i] + " --> " + holding[i]);
+		i += 1;
+		while (i < BarCount && dn[i] == cur_dn) {
+			holding[i] = holding[i-1] + netShares[i];
+			//_TRACE("" + i + ": " + netShares[i] + " --> " + holding[i]);
+			i += 1;
+		}
+	}
+	
+	if (Status("ActionEx") == actionExplore) {
+		AddColumn(buyShares, "buyShares", 1.0);
+		AddColumn(sellShares, "sellShares", 1.0);
+		AddColumn(holding, "holding", 1.0);
+	}
+	
+	return holding;
+}
+
+//
 // Get total number of shares that is owned at any time. This is 
 // accummulation of buy and sell activities of the investor.
 //
 function stGetHolding(buyShares, sellShares)
 {
-	netShares = buyShares - sellShares;
-	rawHolding = Cum(netShares);
-	
-	lowestHoldingArr = Lowest(rawHolding);
-	lowestHoldingValue = lowestHoldingArr[BarCount-1];
-	if (lowestHoldingValue < 0)
-		holding = rawHolding + (-lowestHoldingValue);
-	else
-		holding = rawHolding;
+	if (Interval() < inDaily) {
+		holding = stGetHoldingIntraday(buyShares, sellShares);
+	} else {
+		netShares = buyShares - sellShares;
+		rawHolding = Cum(netShares);
 		
+		lowestHoldingArr = Lowest(rawHolding);
+		lowestHoldingValue = lowestHoldingArr[BarCount-1];
+		if (lowestHoldingValue < 0)
+			holding = rawHolding + (-lowestHoldingValue);
+		else
+			holding = rawHolding;
+	}
+	
 	return holding;
 }
 
-
 //
-// Calculate average price from buy and sell values.
-// Returns the average price of the stock ownership.
-// Also sets global variable stProfit to indicate the realized 
-// profit (or loss) from the transactions.
+// Intraday version of average price calculation
 //
-function stGetAvgPrice(buyValue, buyShares, sellValue, sellShares)
+function stGetAvgPriceIntraday(buyValue, buyShares, sellValue, sellShares)
 {
 	global stProfit;
 	
-	isIntraday = Interval() < inDaily;
-	if (isIntraday) {
-		_N(col = "int");
-	} else {
-		if (Interval() > inDaily) {
-			stAlert("Error: Interval greater than daily is not supported yet!");
-		}
-		_N(col = "day");
-	}
-
-	buyAvg = IIf(buyShares >= 1, buyValue / buyShares, 0);
-	sellAvg = IIf(sellShares >= 1, sellValue / sellShares, 0);
+	typ = stTypicalPrice();
+	sellAvg = IIf(sellShares >= 1, sellValue / sellShares, Null);
 	
 	netShares = buyShares - sellShares;
 	
 	dn = DateNum();
-	prev_dn = -1;
+	last_dn = dn[BarCount - 1];
+	first = True;
 	
-	i = 0;
-	if (IsEmpty(netShares[i])) {
-		portoShares[i] = 0;
-		portoAvg[i] = Null;
-		stProfit[i] = Null;
-		branch[i] = 10;
-	} else if (netShares[i] >= 0) {
-		portoShares[i] = netShares[i];
-		portoAvg[i] = buyAvg[i];
-		stProfit[i] = netShares[i] * (sellAvg[i] - buyAvg[i]);
-		branch[i] = 20;
-	} else {
-		portoShares[i] = 0;
-		portoAvg[i] = Null;
-		stProfit[i] = sellShares[i] * (sellAvg[i] - buyAvg[i]);
-		branch[i] = 30;
-	}
-
-	for (i=1; i<BarCount; ++i) {
-		if (IsEmpty(netShares[i])) {
-			branch[i] = 40;
-			portoShares[i] = 0;
+	for (i=0; i<BarCount; ++i) {
+		if (dn[i] != last_dn || IsEmpty(netShares[i])) {
+			portoShares[i] = Null;
 			portoAvg[i] = Null;
-			stProfit[i] = stProfit[i-1];
-		} else if (dn[i] != prev_dn && isIntraday) {
-			branch[i] = 50;
-			// Reset on new day
-			if (netShares[i] >= 0) {
-				branch[i] = 53;
-				portoShares[i] = netShares[i];
-				portoAvg[i] = buyAvg[i];
-				stProfit[i] = netShares[i] * (sellAvg[i] - buyAvg[i]);
-			} else {
-				branch[i] = 56;
-				portoShares[i] = 0;
-				portoAvg[i] = Null;
-				stProfit[i] = sellShares[i] * (sellAvg[i] - buyAvg[i]);
-			}
-			prev_dn = dn[i];
-			
+			stProfit[i] = Null;
 		} else {
-			branch[i] = 60;
-			portoShares[i] = portoShares[i-1] + buyShares[i];
-			if (portoShares[i]) {
-				if (IsEmpty(portoAvg[i-1])) {
-					portoAvg[i] = buyAvg[i];
-					branch[i] = 62;
-				} else {
-					branch[i] = 64;
-					portoAvg[i] = ((portoShares[i-1] * portoAvg[i-1]) + (buyShares[i] * buyAvg[i])) / portoShares[i];
+		
+			if (first) {
+				// Get the lowest value
+				total = netShares[i];
+				lwst = netShares[i];
+				for (j = i + 1; j < BarCount; ++j) {
+					total = total + netShares[j];
+					if (total < lwst)
+						lwst = total;
 				}
-			} else {
-				branch[i] = 66;
-				portoAvg[i] = PortoAvg[i-1];
+				
+				// Initial value
+				if (lwst < 0) {
+					prevShares = -lwst;
+					prevAvg = typ[i];
+					prevProfit = 0;
+				} else {
+					prevShares = 0;
+					prevAvg = 0;
+					prevProfit = 0;
+				}
+
+				first = False;
+			}		
+		
+			// Initialize with previous value
+			portoShares[i] = prevShares;
+			portoAvg[i] = prevAvg;
+			stProfit[i] = prevProfit;
+			
+			// Add new shares just bought and adjust avg
+			if (buyShares[i]) {
+				portoShares[i] += buyShares[i];
+				portoAvg[i] = ((prevShares * prevAvg) + buyValue[i]) / portoShares[i];
 			}
 			
-			if (sellShares[i] >= portoShares[i]) {
-				// All sold
-				stProfit[i] = IIf(IsEmpty(stProfit[i-1]), 0, stProfit[i-1]) + (portoShares[i] * (sellAvg[i] - portoAvg[i]));
-				portoShares[i] = 0;
-			}  else {
-				stProfit[i] = IIf(IsEmpty(stProfit[i-1]), 0, stProfit[i-1]) + (sellShares[i] * (sellAvg[i] - portoAvg[i]));
+			// Reduce by shares sold and calculate profit
+			if (sellShares[i]) {
 				portoShares[i] -= sellShares[i];
+				profit = sellShares[i] * (sellAvg[i] - portoAvg[i]);
+				stProfit[i] = prevProfit + profit;
 			}
+			
+			prevShares = portoShares[i];
+			prevAvg = portoAvg[i];
+			prevProfit = stProfit[i];
 		}
-		
-		if (portoAvg[i] == 0.0)
-			portoAvg[i] = Null;
 	}
 	
 	if (Status("ActionEx") == actionExplore) {
@@ -606,6 +635,103 @@ function stGetAvgPrice(buyValue, buyShares, sellValue, sellShares)
 		AddColumn(portoAvg, "portoAvg", 1.2);
 		AddColumn(stProfit, "stProfit", 1.0);
 	}
+	return portoAvg;
+}
+
+//
+// Daily version of daily price calculation
+//
+function stGetAvgPriceDaily(buyValue, buyShares, sellValue, sellShares)
+{
+	global stProfit;
+	
+	typ = stTypicalPrice();
+	buyAvg = IIf(buyShares >= 1, buyValue / buyShares, Null);
+	sellAvg = IIf(sellShares >= 1, sellValue / sellShares, Null);
+	
+	netShares = buyShares - sellShares;
+	rawHolding = Cum(netShares);
+	
+	lowestHoldingArr = Lowest(rawHolding);
+	lowestHoldingValue = lowestHoldingArr[BarCount-1];
+	if (lowestHoldingValue < 0)
+		initialShares = -lowestHoldingValue;
+	else
+		initialShares = 0;
+	
+	dn = DateNum();
+	prev_dn = -1;
+	
+	prevShares = initialShares;
+	prevAvg = typ[0];
+	prevProfit = 0;
+	
+	for (i=0; i<BarCount; ++i) {
+		if (IsEmpty(netShares[i])) {
+			portoShares[i] = Null;
+			portoAvg[i] = Null;
+			stProfit[i] = Null;
+		} else {
+			// Initialize with previous value
+			portoShares[i] = prevShares;
+			portoAvg[i] = prevAvg;
+			stProfit[i] = prevProfit;
+			
+			// Add new shares just bought and adjust avg
+			if (buyShares[i]) {
+				portoShares[i] += buyShares[i];
+				portoAvg[i] = ((prevShares * prevAvg) + buyValue[i]) / portoShares[i];
+			}
+			
+			// Reduce by shares sold and calculate profit
+			if (sellShares[i]) {
+				portoShares[i] -= sellShares[i];
+				profit = sellShares[i] * (sellAvg[i] - portoAvg[i]);
+				stProfit[i] = prevProfit + profit;
+			}
+			
+			prevShares = portoShares[i];
+			prevAvg = portoAvg[i];
+			prevProfit = stProfit[i];
+		}
+	}
+	
+	if (Status("ActionEx") == actionExplore) {
+		//AddColumn(BarIndex(), "i", 1.0);
+		//AddColumn(branch, "branch", 1.0);
+		AddColumn(buyShares, "buyShares", 1.0);
+		AddColumn(sellShares, "sellShares", 1.0);
+		AddColumn(netShares, "netShares", 1.0);
+		
+		AddColumn(buyAvg, "buyAvg", 1.2);
+		AddColumn(sellAvg, "sellAvg", 1.2);
+		
+		AddColumn(portoShares, "portoShares", 1.0);
+		AddColumn(portoAvg, "portoAvg", 1.2);
+		AddColumn(stProfit, "stProfit", 1.0);
+	}
+	return portoAvg;
+}
+
+
+//
+// Calculate average price from buy and sell values.
+// Returns the average price of the stock ownership.
+// Also sets global variable stProfit to indicate the realized 
+// profit (or loss) from the transactions.
+//
+function stGetAvgPrice(buyValue, buyShares, sellValue, sellShares)
+{
+	isIntraday = Interval() < inDaily;
+	if (isIntraday) {
+		portoAvg = stGetAvgPriceIntraday(buyValue, buyShares, sellValue, sellShares);
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+		portoAvg = stGetAvgPriceDaily(buyValue, buyShares, sellValue, sellShares);
+	}
+
 	return portoAvg;
 }
 
