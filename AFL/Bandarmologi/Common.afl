@@ -45,6 +45,33 @@ function stBdGetStartDate(days)
 
 
 //
+// Get broker's cummulative buy shares
+//
+function stBdGetBrokerCumBuyShares(broker_name, start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	_N( sql = " SELECT @running_total := @running_total + int_buy_vol AS cum_buy, \n" + 
+			  "        dtime \n" + 
+			  " FROM  v_adj_intraday_broker \n" +
+			  "	JOIN (SELECT @running_total := 0) r \n" + 
+		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+		      " ORDER BY dtime Asc" );
+	
+	varName = "bdcumbuyshares-" + broker_name;
+	result = stCachedSQL(varName, sql);
+	
+	return result;
+}
+
+//
 // Get broker's cummulative buy value in Milyar Rp
 //
 function stBdGetBrokerCumBuyValue(broker_name, start_date_str)
@@ -66,6 +93,33 @@ function stBdGetBrokerCumBuyValue(broker_name, start_date_str)
 		      " ORDER BY dtime Asc" );
 	
 	varName = "bdcumbuy-" + broker_name;
+	result = stCachedSQL(varName, sql);
+	
+	return result;
+}
+
+//
+// Get broker's cummulative sell shares
+//
+function stBdGetBrokerCumSellShares(broker_name, start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	_N( sql = " SELECT @running_total := @running_total + int_sell_vol AS cum_sell, \n" + 
+			  "        dtime \n" + 
+			  " FROM  v_adj_intraday_broker \n" +
+			  "	JOIN (SELECT @running_total := 0) r \n" + 
+		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+		      " ORDER BY dtime Asc" );
+	
+	varName = "bdcumsellshares-" + broker_name;
 	result = stCachedSQL(varName, sql);
 	
 	return result;
@@ -99,6 +153,37 @@ function stBdGetBrokerCumSellValue(broker_name, start_date_str)
 }
 
 //
+// Get broker's cummulative ownership shares in Lot
+//
+function stBdGetBrokerCumShares(broker_name, start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	// Randomize the order to get better parallelism
+	if (LastValue(Random()) < 0.5) {
+		cumBuy = stBdGetBrokerCumBuyShares(broker_name, start_date_str);
+		cumSell = stBdGetBrokerCumSellShares(broker_name, start_date_str);
+	} else {
+		cumSell = stBdGetBrokerCumSellShares(broker_name, start_date_str);
+		cumBuy = stBdGetBrokerCumBuyShares(broker_name, start_date_str);
+	}
+
+	//balance = cumBuy - cumSell;
+	buyShares = cumBuy - Ref(cumBuy, -1);
+	sellShares = cumSell - Ref(cumSell, -1);
+	
+	balance = stGetHolding(buyShares, sellShares);
+	
+	return balance;
+}
+
+//
 // Get broker's cummulative ownership value in Milyar Rp
 //
 function stBdGetBrokerCumValue(broker_name, start_date_str)
@@ -120,7 +205,10 @@ function stBdGetBrokerCumValue(broker_name, start_date_str)
 		cumBuy = stBdGetBrokerCumBuyValue(broker_name, start_date_str);
 	}
 
-	balance = cumBuy - cumSell;
+	buyValue = cumBuy - Ref(cumBuy, -1);
+	sellValue = cumSell - Ref(cumSell, -1);
+	
+	balance = stGetHolding(buyValue, sellValue);
 	return balance;
 }
 
@@ -128,7 +216,7 @@ function stBdGetBrokerCumValue(broker_name, start_date_str)
 // Get broker average price based on buy volume, buy avg, and sell volume.
 // This also calculates broker's profit/loss and save it to global variable stBrokerProfit
 //
-function stBdGetBrokerAveragePrice(broker_name)
+function stBdGetBrokerAveragePrice(broker_name, start_date_str)
 {
 	global stBrokerProfit;
 	
@@ -142,34 +230,18 @@ function stBdGetBrokerAveragePrice(broker_name)
 		_N(col = "day");
 	}
 
-	_N( sql = " SELECT " + col + "_buy_vol, dtime \n" + 
-			  " FROM  v_adj_intraday_broker \n" +
-		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
-		      " ORDER BY dtime Asc" );
-	varName = "bdbuyvol-" + broker_name; 
-	buyShares = stCachedSQL(varName, sql);
+	cumBuyShares = stBdGetBrokerCumBuyShares(broker_name, start_date_str);
+	buyShares = cumBuyShares - Ref(cumBuyShares, -1);
 	
-	_N( sql = " SELECT " + col + "_buy_value, dtime \n" + 
-			  " FROM  v_adj_intraday_broker \n" +
-		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
-		      " ORDER BY dtime Asc" );
-	varName = "bdbuyvalue-" + broker_name; 
-	buyValue = stCachedSQL(varName, sql);
+	cumBuyValue = stBdGetBrokerCumBuyValue(broker_name, start_date_str) * MILYAR;
+	buyValue = cumBuyValue - Ref(cumBuyValue, -1);
+
+	cumSellShares = stBdGetBrokerCumSellShares(broker_name, start_date_str);
+	sellShares = cumSellShares - Ref(cumSellShares, -1);
+
+	cumSellValue = stBdGetBrokerCumSellValue(broker_name, start_date_str) * MILYAR;
+	sellValue = cumSellValue - Ref(cumSellValue, -1);
 	
-	_N( sql = " SELECT " + col + "_sell_vol, dtime \n" + 
-			  " FROM  v_adj_intraday_broker \n" +
-		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
-		      " ORDER BY dtime Asc" );
-	varName = "bdsellvol-" + broker_name; 
-	sellShares = stCachedSQL(varName, sql);
-
-	_N( sql = " SELECT " + col + "_sell_value, dtime \n" + 
-			  " FROM  v_adj_intraday_broker \n" +
-		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' \n" +
-		      " ORDER BY dtime Asc" );
-	varName = "bdsellvalue-" + broker_name; 
-	sellValue = stCachedSQL(varName, sql);
-
 	avgPrice = stGetAvgPrice(buyValue, buyShares, sellValue, sellShares);
 	stBrokerProfit = stProfit;
 	

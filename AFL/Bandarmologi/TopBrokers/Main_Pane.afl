@@ -64,13 +64,14 @@ stBdSellerColors[5] = colorPink;
 function stInitTopBrokers(is_master)
 {
 	global stBdTopBrokers, stBdBrokerCnt, stBdStartDate, stBdParamDays, 
-		   stBdParamTopCount, stBdParamAbs, stBdStartBalanceDate;
+		   stBdParamTopCount, stBdParamUseValue, stBdParamAbs, stBdStartBalanceDate;
 	
 	stConnectDatabase();
 	
 	if (is_master) {
 		stBdParamDays = Param("Days", stBdParamDays, 0, 60);
 		stBdParamTopCount = Param("Brokers", stBdParamTopCount, 1, 5);
+		stBdParamUseValue = ParamToggle("Use Value or Lot", "Lot|Value", 1);
 		stBdParamAbs = ParamToggle("Absolute Value", "No|Yes", stBdParamAbs);
 		sb = ParamDate("Start Balance", stBdStartBalanceDate, 0);
 		_N( stBdStartBalanceDate = stDateNumToISODate(sb) );
@@ -96,6 +97,7 @@ function stInitTopBrokers(is_master)
 		
 		StaticVarSet("stBdParamDays", stBdParamDays);
 		StaticVarSet("stBdParamTopCount", stBdParamTopCount);
+		StaticVarSet("stBdParamUseValue", stBdParamUseValue);
 		StaticVarSet("stBdParamAbs", stBdParamAbs);
 		StaticVarSetText("stBdStartBalanceDate", stBdStartBalanceDate);
 		
@@ -115,6 +117,7 @@ function stInitTopBrokers(is_master)
 		stBdParamDays = StaticVarGet("stBdParamDays");
 		stBdParamTopCount = StaticVarGet("stBdParamTopCount");
 		stBdParamAbs = StaticVarGet("stBdParamAbs");
+		stBdParamUseValue = StaticVarGet("stBdParamUseValue");
 		_N( stBdStartBalanceDate = StaticVarGetText("stBdStartBalanceDate") );
 	}
 }
@@ -147,13 +150,16 @@ function stBdGetTopSellerName(index)
 }
 
 //
-// Plot the specified broker's cummulative value
+// Plot the specified broker's cummulative ownership (in Lot)
 //
 function stBdPlotBroker(brokerName, is_buyer, index)
 {
-	global stBdParamAbs, stBdStartBalanceDate;
+	global stBdParamUseValue, stBdParamAbs, stBdStartBalanceDate;
 	
-	balance = stBdGetBrokerCumValue(brokerName, stBdStartBalanceDate);
+	if (stBdParamUseValue)
+		balance = stBdGetBrokerCumValue(brokerName, stBdStartBalanceDate);
+	else
+		balance = stBdGetBrokerCumShares(brokerName, stBdStartBalanceDate);
 	
 	if (is_buyer) {
 		color = stBdBuyerColors[index];

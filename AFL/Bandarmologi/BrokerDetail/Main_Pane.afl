@@ -73,23 +73,28 @@ _SECTION_END();
 //
 // Broker details
 //
-_SECTION_BEGIN("Broker Details");
+_SECTION_BEGIN("Broker Detail");
 	brokerColor = colorBlue;
 
 	// Broker Balance
-	balance = stBdGetBrokerCumValue(stBrokerName, stBrokerStartDate);
+	if (stBdParamUseValue) {
+		balance = stBdGetBrokerCumValue(stBrokerName, stBrokerStartDate);
+		_N(bTitle = "Holding (B Rp)");
+	} else {
+		balance = stBdGetBrokerCumShares(stBrokerName, stBrokerStartDate) / 100;
+		_N(bTitle = "Holding (Lot)");
+	}
 
-	Plot(stAutoPrec(balance), "Balance (B)", 
+	Plot(stAutoPrec(balance), bTitle, 
 		 colorLightBlue, 
 		 styleLine | styleThick, 
 		 Null, Null, 0, 5);
 
 	// Average price and broker's P/L
-	avgPrice = stBdGetBrokerAveragePrice(stBrokerName);
-	brokerProfit = stBrokerProfit / MILYAR;
+	avgPrice = stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
 
 	Plot( Prec(avgPrice, 1), 
-		  "Avg",  
+		  "Avg Price", 
 		  colorGreen, 
 		  styleDashed | styleOwnScale | styleThick, 
 		  LowestLow, 

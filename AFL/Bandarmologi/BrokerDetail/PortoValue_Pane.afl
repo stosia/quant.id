@@ -35,15 +35,62 @@ _t0 = GetPerformanceCounter();
 // Init broker detail pane as slave
 stInitBrokerDetail(False);
 
-_SECTION_BEGIN("Net");
-	stSetBackgroundTitle(Name() + ": " + stBrokerName + " Cumulative Realized P/L (B Rp)");
+_SECTION_BEGIN("Portfolio Value");
+	stSetBackgroundTitle(Name() + ": " + stBrokerName + " Porto Value (B Rp)");
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
-	brokerProfit = stBrokerProfit / MILYAR;
+	ffHoldingShares = stBdGetBrokerCumShares(stBrokerName, stBrokerStartDate);
+	ffHolding = ffHoldingShares * C / MILYAR;
 	
-	Plot(stAutoPrec(brokerProfit), "Cumulative Realized P/L (b)", colorLightBlue, styleLine | styleThick);
+	Plot(stAutoPrec(ffHolding), 
+		 stBrokerName + " Porto Value (B Rp)", colorLightBlue, 
+		 styleLine | styleThick,
+		 null,
+		 null,
+		 0,
+		 1,
+		 2);
+	
+	Plot(0, "0", colorLightGrey, styleThick | styleNoLabel | styleNoTitle, Null, Null, 0, 0);
+	
+	dt = DateTime();
+	
+	//
+	// Calculate what is lowest porto value and when
+	//
+	arr = Lowest(ffHolding);
+	ffLowestValue = arr[BarCount-1];
+	arr = LowestBars(ffHolding);
+	lBars = arr[BarCount-1];
+	lPos = BarCount - 1 - lBars;
+	_N(lWhen = stDateTimeToISODateTime(dt[lPos]));
+	
+	//
+	// Calculate what is highest porto value and when
+	//
+	arr = Highest(ffHolding);
+	ffHighestValue = arr[BarCount-1];
+	arr = HighestBars(ffHolding);
+	hBars = arr[BarCount-1];
+	hPos = BarCount - 1 - hBars;
+	_N(hWhen = stDateTimeToISODateTime(dt[hPos]));
+	
+	//
+	// Write lowest/highest info
+	//
+	_N(lMsg = "Lowest: Rp " + stAutoPrec(ffLowestValue) + " B on " + lWhen + ", highest: Rp " + stAutoPrec(ffHighestValue) + " B on " + hWhen);
+	stMessageBoxYFs(lMsg, colorGrey40, GetChartBkColor(), 0, 10);
+	
+	//
+	// Plot shapes when graph is in its lowest/highest value
+	//
+	isTop = ffHolding == ffHighestValue;
+	isBottom = ffHolding == ffLowestValue;
+	
+	PlotShapes( isTop * shapeSmallUpTriangle, colorGreen, 0, ffHolding); 
+	PlotShapes( isBottom * shapeSmallDownTriangle, colorRed, 0, ffHolding); 
+	
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
-_TRACE( Name() + " Broker profit " + stBrokerName + ": " + (_t1 - _t0) + " ms");
+_TRACE( Name() + " Broker porto value " + stBrokerName + ": " + (_t1 - _t0) + " ms");
