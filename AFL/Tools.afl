@@ -475,6 +475,24 @@ function stLastDayValue(array)
 }
 
 //
+// Invert an array, where the lowest value becomes the highest and
+// vice versa.
+//
+function stInvert(arr)
+{
+	lowestArr = Lowest(arr);
+	lowestValue = lowestArr[BarCount-1];
+	
+	highestArr = Highest(arr);
+	highestValue = highestArr[BarCount-1];
+	
+	midValue = (highestValue + lowestValue) / 2;
+	
+	inverted = midValue + (midValue - arr);
+	return inverted;
+}
+
+//
 // Adjust array values to remove negative values. For example,
 // may return negative value for share holdings (cummulative share 
 // ownership). To remove the negative values, we first get the

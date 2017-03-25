@@ -9,8 +9,8 @@
 			<FilePath>Formulas\\Quant.id\\Indicators\\Bandarmologi\\TopBrokers\\MainPane.afl</FilePath>
 			<Flags>256</Flags>
 			<MoreFlags>1073741827</MoreFlags>
-			<Min>-23.3945</Min>
-			<Max>1229.61</Max>
+			<Min>-2.116</Min>
+			<Max>111.217</Max>
 		</Pane>
 		<Pane>
 			<ChartID>1249</ChartID>
@@ -19,8 +19,8 @@
 			<FilePath>Formulas\\Quant.id\\Indicators\\Bandarmologi\\TopBrokers\\AccDistPane.afl</FilePath>
 			<Flags>256</Flags>
 			<MoreFlags>1342177281</MoreFlags>
-			<Min>-48.007</Min>
-			<Max>2576.81</Max>
+			<Min>-0.002</Min>
+			<Max>0.10512</Max>
 		</Pane>
 	</Sheet>
 	<Sheet>

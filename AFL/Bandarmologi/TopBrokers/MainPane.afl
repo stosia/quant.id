@@ -61,11 +61,24 @@ _SECTION_BEGIN("Top Brokers");
 		retail = stBdGetRetailCumValue(stBdStartBalanceDate);
 	else
 		retail = stBdGetRetailCumShares(stBdStartBalanceDate);
+
+	showRetail = ParamToggle("Show Retail", "No|Yes", 1);
+	showIVR = ParamToggle("Show Inverted Retail (IVR)", "No|Yes", 1);
 	
-	Plot(stAutoPrec(retail), "Total retail", ColorBlend(colorRed, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 5, 3);
-	x = LastValue( BarIndex() ) + 1;
-    y = LastValue( retail );
-	PlotTextSetFont( "Rtl", "Arial", 12, x, y, GetChartBkColor(), colorRed, -12/2 );
+	if (showRetail) {
+		Plot(stAutoPrec(retail), "Total retail", ColorBlend(colorRed, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 5, 3);
+		x = LastValue( BarIndex() ) + 1;
+		y = LastValue( retail );
+		PlotTextSetFont( "RTL", "Arial", 10, x, y, GetChartBkColor(), colorRed, -12/2 );
+	}
+	
+	if (showIVR) {
+		invRetail = stInvert(retail);
+		Plot(stAutoPrec(invRetail), "Inv retail", ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 5, 3);
+		x = LastValue( BarIndex() ) + 1;
+		y = LastValue( invRetail );
+		PlotTextSetFont( "IVR", "Arial", 11, x, y, GetChartBkColor(), colorLightBlue, -12/2 );
+	}
 	
 	// Plot top buyers and sellers
 	for (i=0; i<stBdParamTopCount; ++i) {
