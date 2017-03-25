@@ -30,180 +30,7 @@
  */
 _t0 = GetPerformanceCounter();
 
-#include_once <..\Quant.id\AFL\Bandarmologi\Common.afl>
-
-stBdTopBrokers = "";
-stBdBrokerCnt = 0;
-
-stBdParamDays = 0;
-stBdParamTopCount = 3;
-stBdParamAbs = False;
-
-_N(stBdStartBalanceDate = "2016-07-01");
-stBdStartDate = Null;
-
-stBdBuyerColors = 0;
-stBdBuyerColors[0] = colorBlue;
-stBdBuyerColors[1] = colorDarkYellow;
-stBdBuyerColors[2] = colorGreen;
-stBdBuyerColors[3] = colorTurquoise;
-stBdBuyerColors[4] = colorIndigo;
-stBdBuyerColors[5] = colorLightBlue;
-
-stBdSellerColors = 0;
-stBdSellerColors[0] = colorRed;
-stBdSellerColors[1] = colorOrange;
-stBdSellerColors[2] = colorGreen;
-stBdSellerColors[3] = colorDarkTeal;
-stBdSellerColors[4] = colorDarkRed;
-stBdSellerColors[5] = colorPink;
-
-//
-// Init top brokers chart
-//
-function stInitTopBrokers(is_master)
-{
-	global stBdTopBrokers, stBdBrokerCnt, stBdStartDate, stBdParamDays, 
-		   stBdParamTopCount, stBdParamUseValue, stBdParamAbs, stBdStartBalanceDate;
-	
-	stConnectDatabase();
-	
-	if (is_master) {
-		stBdParamDays = Param("Days", stBdParamDays, 0, 60);
-		stBdParamTopCount = Param("Brokers", stBdParamTopCount, 1, 5);
-		stBdParamUseValue = ParamToggle("Use Value or Lot", "Lot|Value", 1);
-		stBdParamAbs = ParamToggle("Absolute Value", "No|Yes", stBdParamAbs);
-		sb = ParamDate("Start Balance", stBdStartBalanceDate, 0);
-		_N( stBdStartBalanceDate = stDateNumToISODate(sb) );
-
-		_N( stBdStartDate = stBdGetStartDate(stBdParamDays) );
-		if (stBdStartDate < stBdStartBalanceDate)
-			_N( stBdStartDate = stBdStartBalanceDate );
-		
-		odbcDisplayErrors(True);
-		_N(sql = "call get_top_brokers('" + Name() + "', '" + stBdStartDate + "')");
-		
-		stBdTopBrokers = odbcGetValueSQL(sql);
-		len = StrLen(stBdTopBrokers);
-		if (len < 3) {
-			stBdTopBrokers = "";
-			len = 0;
-		}
-		stBdBrokerCnt = floor((len + 1) / 3);
-
-		if (stBdBrokerCnt == 0) {
-			stAlert("Error: broker summary for " + Name() + " is not available");
-		}
-		
-		StaticVarSet("stBdParamDays", stBdParamDays);
-		StaticVarSet("stBdParamTopCount", stBdParamTopCount);
-		StaticVarSet("stBdParamUseValue", stBdParamUseValue);
-		StaticVarSet("stBdParamAbs", stBdParamAbs);
-		StaticVarSetText("stBdStartBalanceDate", stBdStartBalanceDate);
-		
-		StaticVarSetText("stBdStartDate", stBdStartDate);
-		StaticVarSetText("stBdTopBrokers", stBdTopBrokers);
-		StaticVarSet("stBdBrokerCnt", stBdBrokerCnt);
-		
-		stMasterChartSignalReady("stInitTopBrokers");
-		
-	} else {
-		stSlaveChartWaitReady("stInitTopBrokers");
-
-		stBdStartDate = StaticVarGetText("stBdStartDate");
-		stBdTopBrokers = StaticVarGetText("stBdTopBrokers");
-		stBdBrokerCnt = StaticVarGet("stBdBrokerCnt");
-		
-		stBdParamDays = StaticVarGet("stBdParamDays");
-		stBdParamTopCount = StaticVarGet("stBdParamTopCount");
-		stBdParamAbs = StaticVarGet("stBdParamAbs");
-		stBdParamUseValue = StaticVarGet("stBdParamUseValue");
-		_N( stBdStartBalanceDate = StaticVarGetText("stBdStartBalanceDate") );
-	}
-}
-
-//
-// Get number of brokers involved
-//
-function stBdGetBrokerCount()
-{
-	global stBdTopBrokers, stBdBrokerCnt;
-	return stBdBrokerCnt;
-}
-
-//
-// Get the name of the top buyer
-//
-function stBdGetTopBuyerName(index)
-{
-	global stBdTopBrokers, stBdBrokerCnt;
-	return StrExtract(stBdTopBrokers, index);
-}
-
-//
-// Get the name of the specified top seller
-//
-function stBdGetTopSellerName(index)
-{
-	global stBdTopBrokers, stBdBrokerCnt;
-	return StrExtract(stBdTopBrokers, stBdBrokerCnt-index-1);
-}
-
-//
-// Plot the specified broker's cummulative ownership (in Lot)
-//
-function stBdPlotBroker(brokerName, is_buyer, index)
-{
-	global stBdParamUseValue, stBdParamAbs, stBdStartBalanceDate;
-	
-	if (stBdParamUseValue)
-		balance = stBdGetBrokerCumValue(brokerName, stBdStartBalanceDate);
-	else
-		balance = stBdGetBrokerCumShares(brokerName, stBdStartBalanceDate);
-	
-	if (is_buyer) {
-		color = stBdBuyerColors[index];
-		style = styleLine;
-	} else {
-		color = stBdSellerColors[index];
-		style = styleDashed;
-		
-		if (stBdParamAbs) {
-			balance = 0 - balance;
-		} 
-	}
-	
-	Plot(balance, brokerName, color, style | styleThick | styleNoLabel, Null, Null, 0, 5);
-	PlotText( brokerName, BarCount-4-index, balance[BarCount-4-index], GetChartBkColor(), color, 0);
-	x = LastValue( BarIndex() ) + 1;
-    y = LastValue( balance );
-    fontsize = 10;
-    PlotTextSetFont( brokerName, "Arial", fontsize, x, y, GetChartBkColor(), color, -fontsize/2 );
-}
-
-//
-// Plot the specified top buyer
-//
-function stBdPlotBuyer(index)
-{
-	global stBdBrokerCnt;
-	
-	if (index < stBdBrokerCnt) {
-		stBdPlotBroker(stBdGetTopBuyerName(index), True, index);
-	}
-}
-
-//
-// Plot the specified top seller
-//
-function stBdPlotSeller(index)
-{
-	if (index < stBdBrokerCnt) {
-		seller = stBdGetTopSellerName(index);
-		stBdPlotBroker(seller, False, index);
-	}
-}
-
+#include_once <..\Quant.id\AFL\Bandarmologi\TopBrokers\Common.afl>
 
 _SECTION_BEGIN("Price");
 	_N(Title = StrFormat(QID_VERSION_LINE + " -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
@@ -230,13 +57,23 @@ _SECTION_BEGIN("Top Brokers");
 	Plot(0, "0", colorGrey40, styleLine | styleThick | styleNoLabel, 
 	     Null, Null, 0, -5, 3);
 
+	if (stBdParamUseValue)
+		retail = stBdGetRetailCumValue(stBdStartBalanceDate);
+	else
+		retail = stBdGetRetailCumShares(stBdStartBalanceDate);
+	
+	Plot(stAutoPrec(retail), "Total retail", ColorBlend(colorRed, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 5, 3);
+	x = LastValue( BarIndex() ) + 1;
+    y = LastValue( retail );
+	PlotTextSetFont( "Rtl", "Arial", 12, x, y, GetChartBkColor(), colorRed, -12/2 );
+	
 	// Plot top buyers and sellers
-	for (i=0; i<5; ++i) {
-		if (stBdParamTopCount > i) stBdPlotBuyer(i);
+	for (i=0; i<stBdParamTopCount; ++i) {
+		stBdPlotBuyer(i);
 	}
 	
-	for (i=4; i>=0; --i) {
-		if (stBdParamTopCount > i) stBdPlotSeller(i);
+	for (i=stBdParamTopCount-1; i>=0; --i) {
+		stBdPlotSeller(i);
 	}
 
 	// Add custom broker, separated by comma.

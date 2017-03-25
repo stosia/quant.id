@@ -31,6 +31,8 @@
 
 #include_once <..\Quant.id\AFL\Tools.afl>
 
+_N(ST_RETAIL_BROKERS = "'YP', 'PD', 'NI', 'KK'");
+
 //
 // Calculate start date, that is "days" prior to last date
 //
@@ -247,3 +249,124 @@ function stBdGetBrokerAveragePrice(broker_name, start_date_str)
 	
 	return avgPrice;
 }
+
+//
+// Get cummulative retail ownership value in Milyar Rp
+//
+function stBdGetRetailCumValue(start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	sql = "   SELECT @running_total := @running_total + SUM(int_net_value)/1000000000.0 AS cumulative_sum, \n" + 
+	      "          dtime \n" + 
+		  "     FROM v_adj_intraday_broker2 t \n" + 
+		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+		  "		 AND ticker = '" + Name() + "' \n" + 
+		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+		  "	GROUP BY dtime \n" + 
+		  "	ORDER BY t.dtime ASC \n";
+
+	varName = "RetailCumValue";
+	result = stCachedSQL(varName, sql);
+	result = stShiftPositive(result);
+	return result;
+}
+
+//
+// Get cummulative retail ownership in shares
+//
+function stBdGetRetailCumShares(start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	sql = "   SELECT @running_total := @running_total + SUM(int_net_vol) AS cumulative_sum, \n" + 
+	      "          dtime \n" + 
+		  "     FROM v_adj_intraday_broker2 t \n" + 
+		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+		  "		 AND ticker = '" + Name() + "' \n" + 
+		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+		  "	GROUP BY dtime \n" + 
+		  "	ORDER BY t.dtime ASC \n";
+
+	varName = "RetailCumShares";
+	result = stCachedSQL(varName, sql);
+	result = stShiftPositive(result);
+	return result;
+}
+
+//
+// Get cummulative non-retail ownership value in Milyar Rp
+//
+function stBdGetNonRetailCumValue(start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	sql = "   SELECT @running_total := @running_total + SUM(int_net_value)/1000000000.0 AS cumulative_sum, \n" + 
+	      "          dtime \n" + 
+		  "     FROM v_adj_intraday_broker2 t \n" + 
+		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+		  "		 AND ticker = '" + Name() + "' \n" + 
+		  "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
+		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+		  "	GROUP BY dtime \n" + 
+		  "	ORDER BY t.dtime ASC \n";
+
+	varName = "NonRetailCumValue";
+	result = stCachedSQL(varName, sql);
+	result = stShiftPositive(result);
+	return result;
+}
+
+//
+// Get cummulative retail ownership in shares
+//
+function stBdGetNonRetailCumShares(start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	sql = "   SELECT @running_total := @running_total + SUM(int_net_vol) AS cumulative_sum, \n" + 
+	      "          dtime \n" + 
+		  "     FROM v_adj_intraday_broker2 t \n" + 
+		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+		  "		 AND ticker = '" + Name() + "' \n" + 
+		  "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
+		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+		  "	GROUP BY dtime \n" + 
+		  "	ORDER BY t.dtime ASC \n";
+
+	varName = "NonRetailCumShares";
+	result = stCachedSQL(varName, sql);
+	result = stShiftPositive(result);
+	return result;
+}
+

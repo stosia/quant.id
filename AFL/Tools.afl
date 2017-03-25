@@ -475,6 +475,26 @@ function stLastDayValue(array)
 }
 
 //
+// Adjust array values to remove negative values. For example,
+// may return negative value for share holdings (cummulative share 
+// ownership). To remove the negative values, we first get the
+// lowest number, and add all values so that the lowest number
+// becomes zero. If the array contains no negative value, then
+// it will be left as is.
+//
+function stShiftPositive(rawHolding)
+{
+	lowestHoldingArr = Lowest(rawHolding);
+	lowestHoldingValue = lowestHoldingArr[BarCount-1];
+	if (lowestHoldingValue < 0)
+		holding = rawHolding + (-lowestHoldingValue);
+	else
+		holding = rawHolding;
+	
+	return holding;
+}
+
+//
 // Intraday version of get holding
 //
 function stGetHoldingIntraday(buyShares, sellShares)
@@ -538,13 +558,7 @@ function stGetHolding(buyShares, sellShares)
 	} else {
 		netShares = buyShares - sellShares;
 		rawHolding = Cum(netShares);
-		
-		lowestHoldingArr = Lowest(rawHolding);
-		lowestHoldingValue = lowestHoldingArr[BarCount-1];
-		if (lowestHoldingValue < 0)
-			holding = rawHolding + (-lowestHoldingValue);
-		else
-			holding = rawHolding;
+		holding = stShiftPositive(rawHolding);
 	}
 	
 	return holding;
