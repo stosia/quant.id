@@ -30,7 +30,7 @@
  */
 _t0 = GetPerformanceCounter();
 
-#include_once <..\Quant.id\AFL\Bandarmologi\TopBrokers\TopBrokersCommon.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\Retailogi\RetailogiCommon.afl>
 
 _SECTION_BEGIN("Price");
 	_N(Title = StrFormat(QID_VERSION_LINE + " -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
@@ -44,41 +44,37 @@ _SECTION_BEGIN("Price");
 _SECTION_END();
 
 
-_SECTION_BEGIN("Top Brokers");
-	// Init bandarmologi as master
-	stInitTopBrokers(True);
+_SECTION_BEGIN("Retailogi");
+	// Init master
+	stInitRetailogi(True);
 
 	// Background text
 	stSetBackgroundTitle(Name());
-	stSetBackgroundSubtitle("Top Brokers " + stBdParamDays + "/" + stBdParamTopCount);
+	stSetBackgroundSubtitle("Retailogi System");
 	stSetBackgroundSubsubtitle(QID_VERSION_LINE);
 	
-	// Y-axis
-	Plot(0, "0", colorGrey40, styleLine | styleThick | styleNoLabel, 
-	     Null, Null, 0, -5, 3);
+	if (stRetailogiParamUseValue) {
+		retail = stBdGetRetailCumValue(stRetailogiStartBalanceDate);
+		_N(satuan = "(B Rp)");
+	} else {
+		retail = stBdGetRetailCumShares(stRetailogiStartBalanceDate);
+		_N(satuan = "(Lot)");
+	}
 
-	// Plot top buyers and sellers
-	for (i=0; i<stBdParamTopCount; ++i) {
-		stBdPlotBuyer(i);
+	if (stRetailogiParamUseIVR) {
+		invRetail = stInvert(retail);
+		Plot(stAutoPrec(invRetail), "Inverted retail " + satuan, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 5, 3);
+		x = LastValue( BarIndex() ) + 1;
+		y = LastValue( invRetail );
+		PlotTextSetFont( "IVR", "Arial", 11, x, y, GetChartBkColor(), colorLightBlue, -12/2 );
+	} else {
+		Plot(stAutoPrec(retail), "Total retail " + satuan, ColorBlend(colorRed, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 5, 3);
+		x = LastValue( BarIndex() ) + 1;
+		y = LastValue( retail );
+		PlotTextSetFont( "RTL", "Arial", 10, x, y, GetChartBkColor(), colorRed, -12/2 );
 	}
 	
-	for (i=stBdParamTopCount-1; i>=0; --i) {
-		stBdPlotSeller(i);
-	}
-
-	// Add custom broker, separated by comma.
-	// E.g.: "YP,PD"
-	addBrokers = ParamStr("More brokers", "");
-	i = 0;
-	while (stBdParamTopCount + i < 6) {
-		broker = StrExtract(addBrokers, i);
-		if (broker == "")
-			break;
-		stBdPlotBroker(broker, True, stBdParamTopCount+i);
-		i += 1;
-	}
-
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
-_TRACE(Name() + " Top brokers: " + Int(_t1 - _t0) + " ms");
+_TRACE(Name() + " Retailogi main: " + Int(_t1 - _t0) + " ms");

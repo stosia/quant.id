@@ -251,9 +251,9 @@ function stBdGetBrokerAveragePrice(broker_name, start_date_str)
 }
 
 //
-// Get cummulative retail ownership value in Milyar Rp
+// Get cummulative retail buy value in Milyar Rp
 //
-function stBdGetRetailCumValue(start_date_str)
+function stBdGetRetailCumBuyValue(start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
@@ -263,7 +263,7 @@ function stBdGetRetailCumValue(start_date_str)
 		}
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_net_value)/1000000000.0 AS cumulative_sum, \n" + 
+	sql = "   SELECT @running_total := @running_total + SUM(int_buy_value)/1000000000.0 AS cumulative_sum, \n" + 
 	      "          dtime \n" + 
 		  "     FROM v_adj_intraday_broker2 t \n" + 
 		  "		JOIN (SELECT @running_total := 0) r \n" + 
@@ -274,8 +274,48 @@ function stBdGetRetailCumValue(start_date_str)
 		  "	GROUP BY dtime \n" + 
 		  "	ORDER BY t.dtime ASC \n";
 
-	varName = "RetailCumValue";
+	varName = "RetailCumBuyValue";
 	result = stCachedSQL(varName, sql);
+	return result;
+}
+
+//
+// Get cummulative retail sell value in Milyar Rp
+//
+function stBdGetRetailCumSellValue(start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	sql = "   SELECT @running_total := @running_total + SUM(int_sell_value)/1000000000.0 AS cumulative_sum, \n" + 
+	      "          dtime \n" + 
+		  "     FROM v_adj_intraday_broker2 t \n" + 
+		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+		  "		 AND ticker = '" + Name() + "' \n" + 
+		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+		  "	GROUP BY dtime \n" + 
+		  "	ORDER BY t.dtime ASC \n";
+
+	varName = "RetailCumSellValue";
+	result = stCachedSQL(varName, sql);
+	return result;
+}
+
+//
+// Get cummulative retail ownership value in Milyar Rp
+//
+function stBdGetRetailCumValue(start_date_str)
+{
+	cumBuyValue = stBdGetRetailCumBuyValue(start_date_str);
+	cumSellValue = stBdGetRetailCumSellValue(start_date_str);
+	result = cumBuyValue - cumSellValue;
 	result = stShiftPositive(result);
 	return result;
 }

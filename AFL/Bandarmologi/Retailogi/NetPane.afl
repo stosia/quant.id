@@ -1,0 +1,76 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini dilisensikan kepada Anda, bukan  Anda miliki.  Pemilik file ini
+ * adalah pemegang  hak cipta ("copyright holder") di atas. Gunakanlah file
+ * ini sesuai dengan lisensi yang telah ditetapkan untuk file ini.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * modifikasi atau karya tersebut kepada publik. Hal ini untuk menjaga agar
+ * pengetahuan yang ada di sini menjadi lebih berkembang  di masa mendatang 
+ * untuk kemajuan kita bersama.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit di pasar saham baik secara perorangan atau organisasi, asal tidak
+ * jahat. Sebagai tambahan permintaan, kami menghimbau untuk TIDAK  menjual
+ * kode/file  ini secara  apa adanya  atau dalam bundel  produk yang dijual
+ * secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ * Contributors:
+ *  - 
+ */
+_t0 = GetPerformanceCounter();
+
+#include_once <..\Quant.id\AFL\Bandarmologi\Retailogi\RetailogiCommon.afl>
+
+_SECTION_BEGIN("Retail Net");
+	// Init as slave pane
+	stInitRetailogi(False);
+	
+	// Background titles
+	stSetBackgroundTitle(Name() + " " + WriteIf(stRetailogiParamUseIVR, "Inverted Retail Net", "Retail Net"));
+	stSetBackgroundSubtitle(QID_VERSION_LINE);
+	
+	// Get cummulative and interval buy and sell values
+	cumRetailBuyValue = stBdGetRetailCumBuyValue(stRetailogiStartBalanceDate);
+	B = cumRetailBuyValue - Ref(cumRetailBuyValue, -1);
+	
+	cumRetailSellValue = stBdGetRetailCumSellValue(stRetailogiStartBalanceDate);
+	S = cumRetailSellValue - Ref(cumRetailSellValue, -1);
+	
+	bcolor = ColorBlend( colorBlueGrey, GetChartBkColor(), 0.5  );
+	scolor = ColorBlend( colorLightOrange, GetChartBkColor(), 0.5  );
+
+	Net = B-S;
+	maxNet = Max(Max(HighestVisibleValue(B), HighestVisibleValue(S)), HighestVisibleValue(abs(Net)));
+	minNet = 0;
+	
+	if (!stRetailogiParamUseIVR) {
+		Plot(stAutoPrec(abs(Net)), "Net", IIf(B >= S, colorBlue, colorOrange), 
+			 styleHistogram | styleOwnScale | styleNoTitle, minNet, maxNet, 0, 4, 5);
+			 
+		Plot(stAutoPrec(IIf(B >= S, B, S)), "Buy / Sell", IIf(B >= S, colorBlueGrey, colorLightOrange), 
+			 styleHistogram | styleOwnScale | styleNoTitle, minNet, maxNet, 0, 2, 5);
+			 
+		Plot(Net, "Net (B Rp)", IIf(B >= S, colorBlueGrey, colorLightOrange), styleNoDraw | styleOwnScale);
+		
+	} else {
+		invNet = -Net;
+		Plot(stAutoPrec(abs(invNet)), "NetPlot", IIf(invNet >= 0, colorBlueGrey, colorLightOrange), 
+			 styleHistogram | styleNoTitle, minNet, maxNet, 0, 4, 5);
+		Plot(invNet, "Inverse Retail Net (B Rp)", IIf(invNet >= 0, colorBlueGrey, colorLightOrange), styleNoDraw | styleOwnScale);
+
+	}
+_SECTION_END();
+
+_t1 = GetPerformanceCounter();
+_TRACE(Name() + " Foreign ratio: " + Int(_t1 - _t0) + " ms");

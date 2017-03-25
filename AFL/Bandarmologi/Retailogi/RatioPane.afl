@@ -1,0 +1,119 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini dilisensikan kepada Anda, bukan  Anda miliki.  Pemilik file ini
+ * adalah pemegang  hak cipta ("copyright holder") di atas. Gunakanlah file
+ * ini sesuai dengan lisensi yang telah ditetapkan untuk file ini.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * modifikasi atau karya tersebut kepada publik. Hal ini untuk menjaga agar
+ * pengetahuan yang ada di sini menjadi lebih berkembang  di masa mendatang 
+ * untuk kemajuan kita bersama.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit di pasar saham baik secara perorangan atau organisasi, asal tidak
+ * jahat. Sebagai tambahan permintaan, kami menghimbau untuk TIDAK  menjual
+ * kode/file  ini secara  apa adanya  atau dalam bundel  produk yang dijual
+ * secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ * Contributors:
+ *  - 
+ */
+_t0 = GetPerformanceCounter();
+
+#include_once <..\Quant.id\AFL\Bandarmologi\Retailogi\RetailogiCommon.afl>
+
+_SECTION_BEGIN("Retail Ratio");
+	// Init as slave pane
+	stInitRetailogi(False);
+	
+	// Background titles
+	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
+	stSetBackgroundSubtitle(QID_VERSION_LINE);
+	
+	// Get cummulative and interval buy and sell values
+	cumRetailBuyValue = stBdGetRetailCumBuyValue(stRetailogiStartBalanceDate);
+	intRetailBuyValue = cumRetailBuyValue - Ref(cumRetailBuyValue, -1);
+	
+	cumRetailSellValue = stBdGetRetailCumSellValue(stRetailogiStartBalanceDate);
+	intRetailSellValue = cumRetailSellValue - Ref(cumRetailSellValue, -1);
+	
+	// Get interval total transaction value for the stock
+	intValue = stGetIntervalValue();
+	
+	// Retail transaction ratio is ratio between retail buy or sell transactions
+	// (depending on which one is bigger) and total transaction value of the stock
+	intRetailValue = Max(intRetailBuyValue, intRetailSellValue);
+	retailRatio = IIf(intValue, intRetailValue * 100 / intValue, 0);
+
+	dynamic_color = IIf( intRetailBuyValue >= intRetailSellValue, 
+						 ColorBlend( colorBlueGrey, GetChartBkColor(), 0.4), 
+						 ColorBlend( colorLightOrange, GetChartBkColor(), 0.4)); 
+	Plot( Round(retailRatio), 
+		  "Retail Transaction Ratio (%)", 
+		  dynamic_color, 
+		  styleHistogram | styleThick,
+		  0,
+		  100,
+		  0,
+		  1,
+		  5);
+
+	
+	// Retail net is ratio between retail actual accumulation/distribution 
+	// (depending which one is bigger) and total transaction value.
+	intRetailNetValue = abs(intRetailBuyValue - intRetailSellValue);
+	intRetailNetRatio = IIf(intValue, intRetailNetValue * 100 / intValue, 0);
+	dynamic_color2 = IIf(intRetailBuyValue >= intRetailSellValue, 
+						 colorBlue, 
+						 colorOrange); 
+	Plot( Round(intRetailNetRatio), 
+		  "Retail Net Ratio (%)", 
+		  dynamic_color2, 
+		  styleHistogram | styleThick,
+		  0,
+		  100,
+		  0,
+		  2,
+		  5);
+	
+	// Additional axes
+	Plot( 100, 
+		  "100", 
+		  colorGrey50, 
+		  styleLine | styleNoLabel,
+		  0,
+		  100,
+		  0,
+		  1 );
+
+	Plot( 50, 
+		  "50", 
+		  colorGrey50, 
+		  styleLine | styleNoLabel,
+		  0,
+		  100,
+		  0,
+		  1 );
+		  
+	Plot( 0, 
+		  "0", 
+		  colorLightGrey, 
+		  styleLine | styleNoLabel,
+		  0,
+		  100,
+		  0,
+		  0 );
+_SECTION_END();
+
+_t1 = GetPerformanceCounter();
+_TRACE(Name() + " Foreign ratio: " + Int(_t1 - _t0) + " ms");

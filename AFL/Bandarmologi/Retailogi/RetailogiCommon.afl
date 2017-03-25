@@ -28,4 +28,30 @@
  * Contributors:
  *  - 
  */
+#include_once <..\Quant.id\AFL\Bandarmologi\BandarmologiCommon.afl>
+
+_N(stRetailogiStartBalanceDate = "2001-01-01");
+
+//
+// Init retailogi master/slave chart
+//
+function stInitRetailogi(is_master)
+{
+	global stRetailogiParamUseValue, stRetailogiParamUseIVR;
+	
+	if (is_master) {
+		stRetailogiParamUseValue = ParamToggle("Use Value or Lot", "Lot|Value", 1);
+		stRetailogiParamUseIVR = ParamToggle("Use Retail or Inverted Retail (IVR)", "Retail|IVR", 0);
+		
+		StaticVarSet("stRetailogiParamUseValue", stRetailogiParamUseValue);
+		StaticVarSet("stRetailogiParamUseIVR", stRetailogiParamUseIVR);
+		
+		stMasterChartSignalReady("stInitRetailogi");
+	} else {
+		stSlaveChartWaitReady("stInitRetailogi", 5);
+		
+		stRetailogiParamUseValue = StaticVarGet("stRetailogiParamUseValue");
+		stRetailogiParamUseIVR = StaticVarGet("stRetailogiParamUseIVR");
+	}
+}
 
