@@ -1,0 +1,94 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini dilisensikan kepada Anda, bukan  Anda miliki.  Pemilik file ini
+ * adalah pemegang  hak cipta ("copyright holder") di atas. Gunakanlah file
+ * ini sesuai dengan lisensi yang telah ditetapkan untuk file ini.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * modifikasi atau karya tersebut kepada publik. Hal ini untuk menjaga agar
+ * pengetahuan yang ada di sini menjadi lebih berkembang  di masa mendatang 
+ * untuk kemajuan kita bersama.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit di pasar saham baik secara perorangan atau organisasi, asal tidak
+ * jahat. Sebagai tambahan permintaan, kami menghimbau untuk TIDAK  menjual
+ * kode/file  ini secara  apa adanya  atau dalam bundel  produk yang dijual
+ * secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ * Contributors:
+ *  - 
+ */
+_t0 = GetPerformanceCounter();
+
+#include_once <..\Quant.id\AFL\Common.afl>
+#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlowCommon.afl>
+
+
+_SECTION_BEGIN("Foreign Holding");
+	stSetBackgroundTitle(Name() + " " + _SECTION_NAME());
+	stSetBackgroundSubtitle(QID_VERSION_LINE);
+	
+	ffHolding = stGetFFHolding() / 100;
+	
+	Plot(stAutoPrec(ffHolding), 
+		 "Foreign Holdings (Lot)", colorRed, 
+		 styleLine | styleThick,
+		 null,
+		 null,
+		 0,
+		 1,
+		 2);
+	
+	Plot(0, "0", colorLightGrey, styleThick | styleNoLabel | styleNoTitle, Null, Null, 0, 0);
+	
+	dt = DateTime();
+	
+	//
+	// Calculate what is lowest porto value and when
+	//
+	arr = Lowest(ffHolding);
+	ffLowestValue = arr[BarCount-1];
+	arr = LowestBars(ffHolding);
+	lBars = arr[BarCount-1];
+	lPos = BarCount - 1 - lBars;
+	_N(lWhen = stDateTimeToISODateTime(dt[lPos]));
+	
+	//
+	// Calculate what is highest porto value and when
+	//
+	arr = Highest(ffHolding);
+	ffHighestValue = arr[BarCount-1];
+	arr = HighestBars(ffHolding);
+	hBars = arr[BarCount-1];
+	hPos = BarCount - 1 - hBars;
+	_N(hWhen = stDateTimeToISODateTime(dt[hPos]));
+	
+	//
+	// Write lowest/highest info
+	//
+	_N(lMsg = "Lowest: " + stAutoPrec(ffLowestValue) + " lot on " + lWhen + ", highest: " + stAutoPrec(ffHighestValue) + " lot on " + hWhen);
+	stMessageBoxYFs(lMsg, colorGrey40, GetChartBkColor(), 0, 10);
+	
+	//
+	// Plot shapes when graph is in its lowest/highest value
+	//
+	isTop = ffHolding == ffHighestValue;
+	isBottom = ffHolding == ffLowestValue;
+	
+	PlotShapes( isTop * shapeSmallUpTriangle, colorGreen, 0, ffHolding); 
+	PlotShapes( isBottom * shapeSmallDownTriangle, colorRed, 0, ffHolding); 
+	
+_SECTION_END();
+
+_t1 = GetPerformanceCounter();
+_TRACE(Name() + " Foreign holding: " + Int(_t1 - _t0) + " ms");
