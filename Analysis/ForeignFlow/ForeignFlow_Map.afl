@@ -22,7 +22,7 @@
  */
  
 #include_once <..\Quant.id\AFL\Tools.afl>
-#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlow.afl>
+#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlowCommon.afl>
 
 #pragma maxthreads 4
  

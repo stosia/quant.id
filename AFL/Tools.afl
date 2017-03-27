@@ -310,7 +310,6 @@ function stDateTimeToISODate(dt)
 	if (Version() >= 6.15) {
 		_N(result = DateTimeToStr(dt, 4));
 	} else {
-		Version(7.0);
 		dn = DateTimeConvert(0, dt);
 		yyyy  = Floor( dn / 10000 ) + 1900;
 		mm = floor((dn - (yyyy - 1900) * 10000) / 100);
