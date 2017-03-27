@@ -330,6 +330,19 @@ function stDateTimeToISODate(dt)
 }
 
 //
+// Convert timenum value to str
+//
+function stTimeNumToStr(tn)
+{
+	_N( tn_str = NumToStr(tn, 1.0, False) );
+	if (StrLen(tn_str) < 6)
+		_N( tn_str = "0" + tn_str );
+	
+	_N( str_time = StrMid(tn_str, 0, 2) + ":" + StrMid(tn_str, 2, 2) + ":" + StrMid(tn_str, 4, 2) );
+	return str_time;
+}
+
+//
 // Convert DateTime to ISO date time string ("YYYY-mm-DD HH:MM:SS")
 //
 function stDateTimeToISODateTime(dt)
@@ -340,12 +353,7 @@ function stDateTimeToISODateTime(dt)
 		_N( str_date = stDateTimeToISODate(dt) );
 		
 		tn = DateTimeConvert(1, dt);
-		_N( tn_str = NumToStr(tn, 1.0, False) );
-		if (StrLen(tn_str) < 6)
-			_N( tn_str = "0" + tn_str );
-		
-		_N( str_time = StrMid(tn_str, 0, 2) + ":" + StrMid(tn_str, 2, 2) + ":" + StrMid(tn_str, 4, 2) );
-		
+		_N(str_time = stTimeNumToStr(tn));
 		_N( result = str_date + " " + str_time );
 	}
 	
