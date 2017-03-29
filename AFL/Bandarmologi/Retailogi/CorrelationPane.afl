@@ -30,21 +30,30 @@
  */
 _t0 = GetPerformanceCounter();
 
-#include_once <..\Quant.id\AFL\Bandarmologi\BrokerDetail\BrokerDetailCommon.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\Retailogi\RetailogiCommon.afl>
 
-// Init broker detail pane as slave
-stInitBrokerDetail(False);
-
-_SECTION_BEGIN("Net");
-	stSetBackgroundTitle(Name() + ": " + stBrokerName + " Cumulative Realized P/L (B Rp)");
+_SECTION_BEGIN("Correlation");
+	// Init as slave pane
+	stInitRetailogi(False);
+	
+	period = Param("Correlation Period", 10, 1, 600);
+	distance = Param("Distance", 1, 1, 20);
+	
+	_N(Indicator = WriteIf(stRetailogiParamUseIVR, "Inverted Retail", "Retail"));
+	stSetBackgroundTitle(Name() + " " + Indicator + " Correlation(" + period + ", " + distance + ")");
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
-	brokerProfit = stBrokerProfit / MILYAR;
-	
-	stPlotLine(brokerProfit, "Profit/Loss", "B Rp", Null, Null, True, True);
-	Plot(0, "0", colorLightGrey, styleThick | styleNoLabel | styleNoTitle, Null, Null, 0, 0);
+	holding = stBdGetRetailCumShares(stRetailogiStartBalanceDate);
+	if (stRetailogiParamUseIVR)
+		holding = stInvert(holding);
+		
+	matchCount = stSimpleCorrelation(C, holding, period, distance);
+	matchPercent = int(matchCount * 100 / period);
+		
+	stPlotLine(matchPercent, Indicator + " Correlation", "%", 0, 100, True, True);
+	Plot(0, "0", ColorRGB(200,200,200), styleNoTitle | styleNoLabel | styleLine, null, Null, 0, 0);
+	Plot(100, "100", ColorRGB(220,220,220), styleNoTitle | styleNoLabel | styleLine, null, Null, 0, 0);
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
-_TRACE( Name() + " Broker profit " + stBrokerName + ": " + (_t1 - _t0) + " ms");
+_TRACE(Name() + " " + Indicator + " correlation: " + Int(_t1 - _t0) + " ms");

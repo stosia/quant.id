@@ -1,12 +1,12 @@
-#include_once <..\Quant.id\AFL\Tools.afl>
+#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlowCommon.afl>
 
 Filter = 1;
 
-dn = (2016 - 1900) * 10000 + 3 * 100 + 6;
-tn = 9 * 10000 + 1 * 100 + 46;
+period = 60;
 
-dt = DateTimeConvert(2, dn, tn);
+ffHolding = stGetFFHolding();
+matchCount = stSimpleCorrelation(C, ffHolding, period);
+matchPercent = int(matchCount * 100 / period);
 
-AddTextColumn( "'" + stDateTimeToISODate(dt) + "'", "Date");
-AddTextColumn( "'" + stDateTimeToISODateTime(dt) + "'", "Date Time");
+AddColumn(matchPercent, "Foreign Correlation");
 

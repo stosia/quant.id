@@ -42,54 +42,9 @@ _SECTION_BEGIN("Foreign Porto Value");
 	typ = stTypicalPrice();
 	ffPortoValue = ffHolding * typ / MILYAR;
 	
-	Plot(stAutoPrec(ffPortoValue), 
-		 "Foreign Porto Value (B Rp)", colorRed, 
-		 styleLine | styleThick,
-		 null,
-		 null,
-		 0,
-		 1,
-		 2);
-	
+	stPlotLine(ffPortoValue, "Porto Value", "B Rp", Null, Null, True, True);
 	Plot(0, "0", colorLightGrey, styleThick | styleNoLabel | styleNoTitle, Null, Null, 0, 0);
-	
-	dt = DateTime();
-	
-	//
-	// Calculate what is lowest porto value and when
-	//
-	arr = Lowest(ffPortoValue);
-	ffLowestValue = arr[BarCount-1];
-	arr = LowestBars(ffPortoValue);
-	lBars = arr[BarCount-1];
-	lPos = BarCount - 1 - lBars;
-	_N(lWhen = stDateTimeToISODateTime(dt[lPos]));
-	
-	//
-	// Calculate what is highest porto value and when
-	//
-	arr = Highest(ffPortoValue);
-	ffHighestValue = arr[BarCount-1];
-	arr = HighestBars(ffPortoValue);
-	hBars = arr[BarCount-1];
-	hPos = BarCount - 1 - hBars;
-	_N(hWhen = stDateTimeToISODateTime(dt[hPos]));
-	
-	//
-	// Write lowest/highest info
-	//
-	_N(lMsg = "Lowest: " + stAutoPrec(ffLowestValue) + " B on " + lWhen + ", highest: " + stAutoPrec(ffHighestValue) + " B on " + hWhen);
-	stMessageBoxYFs(lMsg, colorGrey40, GetChartBkColor(), 0, 10);
-	
-	//
-	// Plot shapes when graph is in its lowest/highest value
-	//
-	isTop = ffPortoValue == ffHighestValue;
-	isBottom = ffPortoValue == ffLowestValue;
-	
-	PlotShapes( isTop * shapeSmallUpTriangle, colorGreen, 0, ffPortoValue); 
-	PlotShapes( isBottom * shapeSmallDownTriangle, colorRed, 0, ffPortoValue); 
-	
+
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();

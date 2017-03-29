@@ -58,7 +58,8 @@ function stMessageBoxYFs( txt, color, bkcolor, y, fontSize )
 	
 	x = Status("pxwidth")/2;
 	
-	GfxSetOverlayMode(0);
+	if (stAlertCnt)
+		GfxSetOverlayMode(0);
 	GfxSelectFont(fontFace, fontSize);
 	GfxSetTextAlign( 6 );// center alignment
 	GfxSetTextColor(color);
@@ -82,6 +83,84 @@ function stMessageBoxY( txt, color, bkcolor, y )
 function stMessageBox( txt, color, bkcolor )
 {
 	stMessageBoxY(txt, color, bkcolor, 20);
+}
+
+//
+// Get the lowest value of the array.
+// As additional result, stLowestBar indicates the index when the
+// lowest value happened
+//
+function stLowestValue(arr, last)
+{
+	global stLowestBar;
+	
+	for (i=0; i<BarCount; ++i) {
+		if (!IsEmpty(arr[i]))
+			break;
+	}
+	
+	if (i==BarCount) {
+		lowestValue = Null;
+		lowestBar = Null;
+	} else {
+		lowestValue = arr[i];
+		stLowestBar = i;
+		if (Last) {
+			for (; i<BarCount; ++i) {
+				if (arr[i] <= lowestValue) {
+					lowestValue = arr[i];
+					stLowestBar = i;
+				}
+			}
+		} else {
+			for (; i<BarCount; ++i) {
+				if (arr[i] < lowestValue) {
+					lowestValue = arr[i];
+					stLowestBar = i;
+				}
+			}
+		}
+	}
+	return lowestValue;
+}
+
+//
+// Get the highest value of the array.
+// As additional result, stHighestBar indicates the index when the
+// highest value happened
+//
+function stHighestValue(arr, last)
+{
+	global stHighestBar;
+	
+	for (i=0; i<BarCount; ++i) {
+		if (!IsEmpty(arr[i]))
+			break;
+	}
+	
+	if (i==BarCount) {
+		highestValue = Null;
+		stHighestBar = Null;
+	} else {
+		highestValue = arr[i];
+		stHighestBar = i;
+		if (Last) {
+			for (; i<BarCount; ++i) {
+				if (arr[i] >= highestValue) {
+					highestValue = arr[i];
+					stHighestBar = i;
+				}
+			}
+		} else {
+			for (; i<BarCount; ++i) {
+				if (arr[i] > highestValue) {
+					highestValue = arr[i];
+					stHighestBar = i;
+				}
+			}
+		}
+	}
+	return highestValue;
 }
 
 //
@@ -211,7 +290,7 @@ function stSetBackgroundTitle( txt )
 	GfxSetTextAlign( 6 );// center alignment
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
-	GfxTextOut( txt, Status("pxwidth")/2, height/15 - titleFontHeight/8);
+	GfxTextOut( txt, Status("pxwidth")/2, height/8 - titleFontHeight/8);
 }
 
 //
@@ -230,7 +309,7 @@ function stSetBackgroundSubtitle( txt )
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
 	GfxTextOut( txt, Status("pxwidth")/2,  
-				height/15 + titleFontHeight + subtitleFontHeight + spacing);
+				height/8 + titleFontHeight + subtitleFontHeight + spacing);
 }
 
 //
@@ -250,7 +329,7 @@ function stSetBackgroundSubSubtitle( txt )
 	GfxSetTextColor( ColorRGB( 220, 220, 220 ) );
 	GfxSetBkMode(1); // transparent
 	GfxTextOut( txt, Status("pxwidth")/2,  
-				height/15 + titleFontHeight + 2*subtitleFontHeight + 
+				height/8 + titleFontHeight + 2*subtitleFontHeight + 
 					2*spacing + subsubtitleFontHeight);
 }
 
@@ -818,7 +897,7 @@ function stSlaveChartWaitReady(id, timeoutSec)
 //
 function stAutoPrec(arr)
 {
-	precDigit = IIf(abs(arr[BarCount-1]) < 1, 3, 1);
+	precDigit = IIf(abs(arr[BarCount-1]) < 1, 3, IIf(abs(arr[BarCount-1]) >= 1000, 0, 1));
 	return Prec(arr, precDigit);
 }
 
@@ -850,3 +929,79 @@ function stGetIntervalValue()
 	
 	return intVal;
 }
+
+//
+// Calculate simple correlation between array A and array B movements
+// during certain period. Returns the count where the movements of both
+// arrays correlate to each other.
+//
+function stSimpleCorrelation(arr1, arr2, period, distance)
+{
+	dir1 = IIf(arr1 > Ref(Arr1, -distance), 1, IIf(arr1 < Ref(arr1, -distance), -1, 0));
+	dir2 = IIf(arr2 > Ref(arr2, -distance), 1, IIf(arr2 < Ref(arr2, -distance), -1, 0));
+	
+	match = dir1 == dir2;
+	return Sum(match, period);
+}
+
+//
+// Create color gradient
+//
+function stColorGradient(loVal, hiVal, curVal)
+{
+	range = hiVal - loVal;
+	curVal = curVal - loVal;
+	return ColorRGB((1 - curVal / range) * 255,  curVal / range * 255, 0);
+}
+
+//
+// Create color gradient
+//
+function stAutoColorGradient(curVal)
+{
+	loVal = stLowestValue(curVal, True);
+	hiVal = stHighestValue(curVal, True);
+	range = hiVal - loVal;
+	curVal = curVal - loVal;
+	return ColorRGB((1 - curVal / range) * 255,  curVal / range * 255, 0);
+}
+
+//
+// Plot standard line indicator with gradient color, text that informs the lowest and
+// highest values, and lowest and highest marks
+//
+function stPlotLine(value, chartTitle, satuan, lowestScale, highestScale, withText, withMark)
+{
+	lValue = stLowestValue(value, True);
+	lBar = stLowestBar;
+	if (IsEmpty(lowestScale))
+		lowestScale = lValue;
+	
+	
+	hValue = stHighestValue(value, True);
+	hBar = stHighestBar;
+	if (IsEmpty(highestScale))
+		highestScale = hValue;
+		
+	color = stColorGradient(lowestScale, highestScale, value);
+	Plot(stAutoPrec(value), chartTitle + " (" + satuan + ")", color, styleLine | styleThick);
+	
+	if (withText) {
+		dt = DateTime();
+		_N(hWhen = stDateTimeToISODateTime(dt[stHighestBar]));
+		_N(lWhen = stDateTimeToISODateTime(dt[stLowestBar]));
+		
+		_N(lMsg = "Lowest: " + stAutoPrec(lValue) + " " + satuan + " on " + lWhen + 
+				  ", highest: " + stAutoPrec(hValue) + " " + satuan + " on " + hWhen);
+		stMessageBoxYFs(lMsg, colorGrey40, GetChartBkColor(), -2, 10);
+	}
+	
+	if (withMark) {
+		isTop = BarIndex() == hBar;
+		isBottom = BarIndex() == lBar;
+		
+		PlotShapes( isTop * shapeSmallUpTriangle, colorGreen, 0, value); 
+		PlotShapes( isBottom * shapeSmallDownTriangle, colorRed, 0, value); 	
+	}
+}
+

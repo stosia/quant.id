@@ -35,16 +35,21 @@ _t0 = GetPerformanceCounter();
 // Init broker detail pane as slave
 stInitBrokerDetail(False);
 
-_SECTION_BEGIN("Net");
-	stSetBackgroundTitle(Name() + ": " + stBrokerName + " Cumulative Realized P/L (B Rp)");
+_SECTION_BEGIN("Broker Correlation");
+	period = Param("Correlation Period", 10, 1, 600);
+	distance = Param("Distance", 2, 1, 20);
+	
+	stSetBackgroundTitle(Name() + ": " + stBrokerName + " Correlation(" + period + ", " + distance + ")");
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
-	brokerProfit = stBrokerProfit / MILYAR;
-	
-	stPlotLine(brokerProfit, "Profit/Loss", "B Rp", Null, Null, True, True);
-	Plot(0, "0", colorLightGrey, styleThick | styleNoLabel | styleNoTitle, Null, Null, 0, 0);
+	ffHolding = stBdGetBrokerCumShares(stBrokerName, stBrokerStartDate) / 100;
+	matchCount = stSimpleCorrelation(C, ffHolding, period, distance);
+	matchPercent = int(matchCount * 100 / period);
+		
+	stPlotLine(matchPercent, "Correlation", "%", 0, 100, True, True);
+	Plot(0, "0", ColorRGB(200,200,200), styleNoTitle | styleNoLabel | styleLine, null, Null, 0, 0);
+	Plot(100, "100", ColorRGB(220,220,220), styleNoTitle | styleNoLabel | styleLine, null, Null, 0, 0);
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
-_TRACE( Name() + " Broker profit " + stBrokerName + ": " + (_t1 - _t0) + " ms");
+_TRACE(Name() + " Broker correlation: " + Int(_t1 - _t0) + " ms");

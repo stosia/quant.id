@@ -44,7 +44,9 @@ _SECTION_BEGIN("Keep alive");
 	_N(latest = stDateTimeToISODateTime(LastValue(dt)));
 	
 	//stSetBackgroundTitle(QID_VERSION_LINE);
-	_N(Title = "ODBC Keep Alive -- Latest data is " + latest + ". Last Refresh: " + Now(2));
+	_N(Msg = "ODBC Keep Alive ©2017 Stosia TI-- " + Name() + " Latest data is " + latest + ". Last Refresh: " + Now(2));
+	_N(Title = "");
+	stMessageBoxYFs(Msg, colorGrey50, GetChartBkColor(), -3, 8);
 	
 	RequestTimedRefresh(KEEP_ALIVE_INTERVAL);
 _SECTION_END();
