@@ -43,7 +43,7 @@ _SECTION_BEGIN("Foreign MACD");
 	stSetBackgroundTitle(StrFormat(Name() + " Foreign MACD(%g, %g, %g)", maPeriod1, maPeriod2, maPeriod3));
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	ffHolding = stGetFFHolding();
+	ffHolding = stGetFFHolding() / 1000000.0 / LOT;
 	
 	// For intraday chart, only show MACD for today
 	if (Interval() < inDaily) {
@@ -59,12 +59,12 @@ _SECTION_BEGIN("Foreign MACD");
 	F_MACD = EMA_S - EMA_L;
 	Sig = EMA(F_MACD, maPeriod3);
 	
-	Plot(F_MACD, "MACD", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleLine | styleThick);
-	Plot(Sig, "Signal", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleDashed);
+	Plot(stAutoPrec(F_MACD), "MACD (Jt Lot)", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleLine | styleThick);
+	Plot(stAutoPrec(Sig), "Signal", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleDashed);
 	
 	Hist = F_MACD - Sig;
 	AHist = abs(Hist);
-	Plot(AHist, "Hist", IIf(Hist >= 0, colorLightBlue, colorLightOrange), styleHistogram | styleOwnScale, 0, HighestVisibleValue(AHist) * 2, 0, 0, 4);
+	Plot(stAutoPrec(AHist), "Hist", IIf(Hist >= 0, colorLightBlue, colorLightOrange), styleHistogram | styleOwnScale, 0, HighestVisibleValue(AHist) * 2, 0, 0, 4);
 	
 	Buy = Cross(F_MACD, Sig);
 	Sell = Cross(Sig, F_MACD);

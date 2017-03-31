@@ -38,8 +38,8 @@ _SECTION_BEGIN("Price");
 	SetChartOptions(0, chartShowDates);
 	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.3)));
 	Plot( C, "Close",  
-		  IIf(C >= Open, ColorBlend(GetChartBkColor(), colorGreen, 0.5), 
-		                 ColorBlend(GetChartBkColor(), colorBrown, 0.5)), 
+		  IIf(C >= Open, ColorBlend(GetChartBkColor(), colorGreen, 1.0), 
+		                 ColorBlend(GetChartBkColor(), colorBrown, 1.0)), 
 		  GetPriceStyle() | styleOwnScale, Null, Null, 0, 1); 
 _SECTION_END();
 
@@ -54,26 +54,47 @@ _SECTION_BEGIN("Retailogi");
 	stSetBackgroundSubsubtitle(QID_VERSION_LINE);
 	
 	if (stRetailogiParamUseValue) {
-		retail = stBdGetRetailCumValue(stRetailogiStartBalanceDate);
+		holding = stBdGetRetailCumValue(stRetailogiStartBalanceDate);
 		_N(satuan = "(B Rp)");
 	} else {
-		retail = stBdGetRetailCumShares(stRetailogiStartBalanceDate);
+		holding = stBdGetRetailCumShares(stRetailogiStartBalanceDate);
 		_N(satuan = "(Lot)");
 	}
 
 	if (stRetailogiParamUseIVR) {
-		invRetail = stInvert(retail);
-		Plot(stAutoPrec(invRetail), "Inverted retail " + satuan, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 5, 3);
-		x = LastValue( BarIndex() ) + 1;
-		y = LastValue( invRetail );
-		PlotTextSetFont( "IVR", "Arial", 11, x, y, GetChartBkColor(), colorLightBlue, -12/2 );
+		holding = stInvert(holding);
+		indTitle = "Inverted Retail (IVR)";
+		indName = "IVR";
 	} else {
-		Plot(stAutoPrec(retail), "Total retail " + satuan, ColorBlend(colorRed, GetChartBkColor(), 0.5), styleDashed, Null, Null, 0, 5, 3);
-		x = LastValue( BarIndex() ) + 1;
-		y = LastValue( retail );
-		PlotTextSetFont( "RTL", "Arial", 10, x, y, GetChartBkColor(), colorRed, -12/2 );
+		indTitle = "Retail";
+		indName = "RTL";
 	}
 	
+	Plot(stAutoPrec(holding), indTitle + " " + satuan, 
+		 ColorBlend(colorRed, GetChartBkColor(), 0.5), 
+		 styleLine | styleThick, Null, Null, 
+		 0, 5);
+	x = LastValue( BarIndex() ) + 2;
+	y = LastValue( holding );
+	PlotTextSetFont( indName, "Arial", 11, x, y, GetChartBkColor(), colorLightBlue, -12/2 );
+	
+	maEnabled = ParamToggle("Enable MA", "No|Yes", 1);
+	maPeriod1 = Param("MA Period 1", 5, 1, 100);
+	maPeriod2 = Param("MA Period 2", 20, 1, 100);
+	
+	ma1 = MA(holding, maPeriod1);
+	ma2 = MA(holding, maPeriod2);
+	
+	if (maEnabled) {
+		Plot( ma1, "MA" + maPeriod1, colorOrange, styleLine | styleNoLabel, Null, Null, Null, 2);
+		Plot( ma2, "MA" + maPeriod2, colorOrange, styleDashed | styleNoLabel, Null, Null, Null, 2);
+		
+		Buy = Cross(holding, ma1);
+		Sell = Cross(ma1, holding);
+		PlotShapes( Buy * shapeUpArrow, colorGreen, 0, ma1); 
+		PlotShapes( Sell * shapeDownArrow, colorRed, 0, holding);
+	}
+
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();

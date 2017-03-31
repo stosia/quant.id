@@ -41,6 +41,21 @@ _SECTION_BEGIN("Foreign Realized Profit/Loss");
 	ffProfit = stProfit / MILYAR;
 	stPlotLine(ffProfit, "Profit/Loss", "B Rp", Null, Null, True, True);
 	Plot(0, "0", colorLightGrey, styleNoDraw | styleNoTitle);
+	
+	intProfit = ffProfit - Ref(ffProfit, -1);
+	absProfit = abs(intProfit);
+	
+	minProfit = 0;
+	maxProfit = HighestVisibleValue(absProfit);
+	
+	color = IIf(intProfit >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), 
+				ColorBlend(colorLightOrange, GetChartBkColor(), 0.5));
+	Plot(stAutoPrec(absProfit), 
+		 WriteIf(intProfit >= 0, "Profit", "Loss"), 
+		 color, 
+		 styleHistogram | styleThick | styleOwnScale, 
+		 0, maxProfit * 2, 0, 0, -50);
+	
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();

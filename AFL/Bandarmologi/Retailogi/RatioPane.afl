@@ -89,8 +89,8 @@ _SECTION_BEGIN("Retail Ratio");
 	// Additional axes
 	Plot( 100, 
 		  "100", 
-		  colorGrey50, 
-		  styleLine | styleNoLabel,
+		  ColorRGB(220,220,220), 
+		  styleLine | styleNoLabel | styleThick,
 		  0,
 		  100,
 		  0,
@@ -98,8 +98,8 @@ _SECTION_BEGIN("Retail Ratio");
 
 	Plot( 50, 
 		  "50", 
-		  colorGrey50, 
-		  styleLine | styleNoLabel,
+		  ColorRGB(220,220,220), 
+		  styleLine | styleNoLabel | styleThick,
 		  0,
 		  100,
 		  0,
@@ -107,8 +107,8 @@ _SECTION_BEGIN("Retail Ratio");
 		  
 	Plot( 0, 
 		  "0", 
-		  colorLightGrey, 
-		  styleLine | styleNoLabel,
+		  ColorRGB(220,220,220), 
+		  styleLine | styleNoLabel | styleThick,
 		  0,
 		  100,
 		  0,

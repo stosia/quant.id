@@ -28,38 +28,18 @@
  * Contributors:
  *  - 
  */
-_t0 = GetPerformanceCounter();
+
+//
+// Use this file to debug internal calculations:
+// - Send to Analysis
+// - Perform exploration with the desired date range
+// - Columns are automatically added by the function
+//
 
 #include_once <..\Quant.id\AFL\Bandarmologi\BrokerDetail\BrokerDetailCommon.afl>
 
-// Init broker detail pane as slave
-stInitBrokerDetail(False);
+Filter = Name() == "BNLI";
+stBrokerName = "CC";
+stBrokerStartDate = "2016-01-01";
+avgPrice = stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
 
-_SECTION_BEGIN("Net");
-	stSetBackgroundTitle(Name() + ": " + stBrokerName + " Cumulative Realized P/L (B Rp)");
-	stSetBackgroundSubtitle(QID_VERSION_LINE);
-	
-	stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
-	brokerProfit = stBrokerProfit / MILYAR;
-	
-	stPlotLine(brokerProfit, "Cum Realized P/L", "B Rp", Null, Null, True, True);
-	//Plot(0, "0", colorLightGrey, styleThick | styleNoLabel | styleNoTitle, Null, Null, 0, 0);
-	
-	intProfit = brokerProfit - Ref(brokerProfit, -1);
-	absProfit = abs(intProfit);
-	
-	minProfit = 0;
-	maxProfit = HighestVisibleValue(absProfit);
-	
-	color = IIf(intProfit >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), 
-				ColorBlend(colorLightOrange, GetChartBkColor(), 0.5));
-	Plot(stAutoPrec(absProfit), 
-		 WriteIf(intProfit >= 0, "Profit", "Loss"), 
-		 color, 
-		 styleHistogram | styleThick, 
-		 0, maxProfit * 2, 0, 0, -50);
-
-_SECTION_END();
-
-_t1 = GetPerformanceCounter();
-_TRACE( Name() + " Broker profit " + stBrokerName + ": " + (_t1 - _t0) + " ms");

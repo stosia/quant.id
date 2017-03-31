@@ -30,36 +30,50 @@
  */
 _t0 = GetPerformanceCounter();
 
-#include_once <..\Quant.id\AFL\Bandarmologi\BrokerDetail\BrokerDetailCommon.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\Retailogi\RetailogiCommon.afl>
 
-// Init broker detail pane as slave
-stInitBrokerDetail(False);
+_SECTION_BEGIN("Retailogi MACD");
+	// Init as slave pane
+	stInitRetailogi(False);
 
-_SECTION_BEGIN("Net");
-	stSetBackgroundTitle(Name() + ": " + stBrokerName + " Cumulative Realized P/L (B Rp)");
+	maPeriod1 = Param("EMA 1", 12, 1, 200, 1);
+	maPeriod2 = Param("EMA 2", 26, 1, 200, 1);
+	maPeriod3 = Param("EMA 3", 9, 1, 200, 1);
+
+	stSetBackgroundTitle(StrFormat(Name() + WriteIf(stRetailogiParamUseIVR, " IVR", "Retail") + " MACD(%g, %g, %g)", maPeriod1, maPeriod2, maPeriod3));
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
-	brokerProfit = stBrokerProfit / MILYAR;
+	holding = stBdGetRetailCumShares(stRetailogiStartBalanceDate);
+	if (stRetailogiParamUseIVR)
+		holding = stInvert(holding);
 	
-	stPlotLine(brokerProfit, "Cum Realized P/L", "B Rp", Null, Null, True, True);
-	//Plot(0, "0", colorLightGrey, styleThick | styleNoLabel | styleNoTitle, Null, Null, 0, 0);
+	// For intraday chart, only show MACD for today
+	if (Interval() < inDaily) {
+		Dn = DateNum();
+		Last_DN = Dn[BarCount-1];
+										 
+		holding = IIf(Dn == Last_DN, holding, 0);
+	}
 	
-	intProfit = brokerProfit - Ref(brokerProfit, -1);
-	absProfit = abs(intProfit);
+	EMA_L = EMA(holding, maPeriod2);
+	EMA_S = EMA(holding, maPeriod1);
 	
-	minProfit = 0;
-	maxProfit = HighestVisibleValue(absProfit);
+	F_MACD = EMA_S - EMA_L;
+	Sig = EMA(F_MACD, maPeriod3);
 	
-	color = IIf(intProfit >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), 
-				ColorBlend(colorLightOrange, GetChartBkColor(), 0.5));
-	Plot(stAutoPrec(absProfit), 
-		 WriteIf(intProfit >= 0, "Profit", "Loss"), 
-		 color, 
-		 styleHistogram | styleThick, 
-		 0, maxProfit * 2, 0, 0, -50);
-
+	Plot(F_MACD, "MACD", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleLine | styleThick);
+	Plot(Sig, "Signal", ColorBlend( colorBlue, GetChartBkColor(), 0.5  ), styleDashed);
+	
+	Hist = F_MACD - Sig;
+	AHist = abs(Hist);
+	Plot(AHist, "Hist", IIf(Hist >= 0, colorLightBlue, colorLightOrange), styleHistogram | styleOwnScale, 0, HighestVisibleValue(AHist) * 2, 0, 0, 4);
+	
+	Buy = Cross(F_MACD, Sig);
+	Sell = Cross(Sig, F_MACD);
+	PlotShapes( Buy * shapeUpArrow, colorGreen, 0, Sig); 
+	PlotShapes( Sell * shapeDownArrow, colorRed, 0, F_MACD);
+	
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
-_TRACE( Name() + " Broker profit " + stBrokerName + ": " + (_t1 - _t0) + " ms");
+_TRACE(Name() + " Retailogi MACD: " + Int(_t1 - _t0) + " ms");

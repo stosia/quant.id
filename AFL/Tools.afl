@@ -33,11 +33,14 @@ _N(QID_VERSION_STR = "0.9");
 _N(QID_VERSION_LINE = "Quant.id v" + QID_VERSION_STR + " ©2017 Stosia TI");
 
 MILYAR = 1000000000.0;
+LOT = 100.0;
 
 Open = Ref(Close, -1);
 
 // Enable or disable database caching
 ST_SQL_CACHING_ENABLED = True;
+
+SetChartOptions(0, 0, chartGridMiddle, 0, 0, 5);
 
 // Error messages
 stAlertCnt = 0;
@@ -101,7 +104,7 @@ function stLowestValue(arr, last)
 	
 	if (i==BarCount) {
 		lowestValue = Null;
-		lowestBar = Null;
+		stLowestBar = Null;
 	} else {
 		lowestValue = arr[i];
 		stLowestBar = i;
@@ -982,26 +985,30 @@ function stPlotLine(value, chartTitle, satuan, lowestScale, highestScale, withTe
 	hBar = stHighestBar;
 	if (IsEmpty(highestScale))
 		highestScale = hValue;
-		
-	color = stColorGradient(lowestScale, highestScale, value);
-	Plot(stAutoPrec(value), chartTitle + " (" + satuan + ")", color, styleLine | styleThick);
 	
-	if (withText) {
-		dt = DateTime();
-		_N(hWhen = stDateTimeToISODateTime(dt[stHighestBar]));
-		_N(lWhen = stDateTimeToISODateTime(dt[stLowestBar]));
+	if (IsEmpty(hValue) || IsEmpty(lValue)) {
+		Plot(stAutoPrec(value), chartTitle + " (" + satuan + ")", colorLightBlue, styleLine | styleThick);
+	} else {
+		color = stColorGradient(lowestScale, highestScale, value);
+		Plot(stAutoPrec(value), chartTitle + " (" + satuan + ")", color, styleLine | styleThick);
 		
-		_N(lMsg = "Lowest: " + stAutoPrec(lValue) + " " + satuan + " on " + lWhen + 
-				  ", highest: " + stAutoPrec(hValue) + " " + satuan + " on " + hWhen);
-		stMessageBoxYFs(lMsg, colorGrey40, GetChartBkColor(), -2, 10);
-	}
-	
-	if (withMark) {
-		isTop = BarIndex() == hBar;
-		isBottom = BarIndex() == lBar;
+		if (withText) {
+			dt = DateTime();
+			_N(hWhen = stDateTimeToISODateTime(dt[stHighestBar]));
+			_N(lWhen = stDateTimeToISODateTime(dt[stLowestBar]));
+			
+			_N(lMsg = "Lowest: " + stAutoPrec(lValue) + " " + satuan + " on " + lWhen + 
+					  ", highest: " + stAutoPrec(hValue) + " " + satuan + " on " + hWhen);
+			stMessageBoxYFs(lMsg, colorGrey40, GetChartBkColor(), -2, 10);
+		}
 		
-		PlotShapes( isTop * shapeSmallUpTriangle, colorGreen, 0, value); 
-		PlotShapes( isBottom * shapeSmallDownTriangle, colorRed, 0, value); 	
+		if (withMark) {
+			isTop = BarIndex() == hBar;
+			isBottom = BarIndex() == lBar;
+			
+			PlotShapes( isTop * shapeSmallUpTriangle, colorGreen, 0, value); 
+			PlotShapes( isBottom * shapeSmallDownTriangle, colorRed, 0, value); 	
+		}
 	}
 }
 

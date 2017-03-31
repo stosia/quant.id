@@ -35,7 +35,7 @@ _t0 = GetPerformanceCounter();
 _SECTION_BEGIN("Price");
 	_N(Title = StrFormat(QID_VERSION_LINE + " -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
 	
-	SetChartOptions(0, chartShowDates);
+	SetChartOptions( 0, chartShowDates);
 	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.3)));
 	Plot( C, "Close",  
 		  IIf(C >= Open, ColorBlend(GetChartBkColor(), colorGreen, 0.5), 

@@ -42,7 +42,8 @@ stSetBackgroundSubsubtitle(QID_VERSION_LINE);
 // Price candlesticks
 //
 _SECTION_BEGIN("Price");
-	SetChartOptions(0,chartShowArrows|chartShowDates);
+	SetChartOptions( 0, chartShowArrows|chartShowDates);
+	
 	_N(Title = StrFormat(QID_VERSION_LINE + " -- {{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) +" {{VALUES}}", 
 						  O, H, L, C, SelectedValue( ROC( C, 1 )) ));
 	Plot( C, "Close", colorDefault, styleNoTitle | GetPriceStyle() ); 
@@ -97,8 +98,8 @@ _SECTION_END();
 _SECTION_BEGIN("Fg Lot");
 	ffHolding = stGetFFHolding() / 100;
 	
-	ffHoldingMinScale = LowestVisibleValue(ffHolding);
-	ffHoldingMaxScale = HighestVisibleValue(ffHolding) * 1.02;
+	ffHoldingMinScale = LowestVisibleValue(ffHolding) * 0.95;
+	ffHoldingMaxScale = HighestVisibleValue(ffHolding) * 1.05;
 	
 	Plot( ffHolding, 
 		  "Fg Lot", 

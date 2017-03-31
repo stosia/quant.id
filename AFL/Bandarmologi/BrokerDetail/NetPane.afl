@@ -36,13 +36,13 @@ _t0 = GetPerformanceCounter();
 stInitBrokerDetail(False);
 
 _SECTION_BEGIN("Net");
-	stSetBackgroundTitle(Name() + ": " + stBrokerName + " Transactions");
+	stSetBackgroundTitle(Name() + ": " + stBrokerName + WriteIf(stBdInvertBroker, " Inverted", "") + " Transactions " + "(B Rp)");
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
 	// Randomize the order to get better parallelism
-	if (LastValue(Random()) < 0.5) {
-		cumBuy = stBdGetBrokerCumBuyValue(stBrokerName, stBrokerStartDate);
-		cumSell = stBdGetBrokerCumSellValue(stBrokerName, stBrokerStartDate);
+	if (stBdInvertBroker) {
+		cumBuy = stBdGetBrokerCumSellValue(stBrokerName, stBrokerStartDate);
+		cumSell = stBdGetBrokerCumBuyValue(stBrokerName, stBrokerStartDate);
 	} else {
 		cumSell = stBdGetBrokerCumSellValue(stBrokerName, stBrokerStartDate);
 		cumBuy = stBdGetBrokerCumBuyValue(stBrokerName, stBrokerStartDate);
@@ -62,7 +62,7 @@ _SECTION_BEGIN("Net");
 		 
 	// Net buy/sell
 	dynamic_color = IIf(net >= 0, colorBlue,  colorOrange);
-	Plot(stAutoPrec(abs(net)), "Net " + WriteIf(net >= 0, "Buy", "Sell"), dynamic_color, 
+	Plot(stAutoPrec(abs(net)), "Net " + WriteIf(net >= 0, "Buy", "Sell") + " (B Rp)", dynamic_color, 
 		 styleHistogram | styleThick, Null, Null, 0, 1, 5);
 	
 _SECTION_END();

@@ -42,7 +42,7 @@ _N(stBrokerStartDate = "");
 //
 function stInitBrokerDetail(as_master)
 {
-	global brokerName, stBrokerStartDate, stBdParamUseValue;
+	global brokerName, stBrokerStartDate, stBdParamUseValue, stBdInvertBroker;
 	
 	_N(chartId = "BrokerDetail");
 	
@@ -51,15 +51,17 @@ function stInitBrokerDetail(as_master)
 		// Get broker name from parameter
 		_SECTION_BEGIN("Broker Detail");
 			_N(stBrokerName = ParamStr("Broker Code", ""));
-			startDate = ParamDate("Start Date", "2017-01-01", 0);
+			startDate = ParamDate("Start Date", "2016-01-01", 0);
 			_N(stBrokerStartDate = stDateNumToISODate(startDate));
 			stBdParamUseValue = ParamToggle("Use Value or Lot", "Lot|Value", 1);
+			stBdInvertBroker = ParamToggle("Inverted Holding", "No|Yes", 0);
 		_SECTION_END();
 	
 		// And set to static var to be read by slave panes
 		StaticVarSetText("stBrokerName", stBrokerName);
 		StaticVarSetText("stBrokerStartDate", stBrokerStartDate);
 		StaticVarSet("stBdParamUseValue", stBdParamUseValue);
+		StaticVarSet("stBdInvertBroker", stBdInvertBroker);
 		stMasterChartSignalReady(chartId);
 	
 	} else {
@@ -68,5 +70,6 @@ function stInitBrokerDetail(as_master)
 		_N(stBrokerName = StaticVarGetText("stBrokerName"));
 		_N(stBrokerStartDate = StaticVarGetText("stBrokerStartDate"));
 		stBdParamUseValue = StaticVarGet("stBdParamUseValue");
+		stBdInvertBroker = StaticVarGet("stBdInvertBroker");
 	}
 }

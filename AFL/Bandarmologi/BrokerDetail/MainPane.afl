@@ -40,7 +40,7 @@ stInitBrokerDetail(True);
 // Title
 //
 stSetBackgroundTitle(Name());
-stSetBackgroundSubtitle("Broker Detail: " + stBrokerName);
+stSetBackgroundSubtitle("Broker Detail: " + WriteIf(stBdInvertBroker, "Inverted ", "") + stBrokerName);
 if (stBrokerName == "") {
 	stSetBackgroundSubsubtitle("Please set broker from parameters");
 } else {
@@ -55,6 +55,7 @@ _SECTION_BEGIN("Price");
 	LowestLow = LowestVisibleValue(Low) * 0.98;
 
 	SetChartOptions(0,chartShowArrows|chartShowDates);
+	
 	_N(Title = StrFormat(QID_VERSION_LINE + " -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
 
 	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.6)));
@@ -85,7 +86,13 @@ _SECTION_BEGIN("Broker Detail");
 		_N(bTitle = "Holding (Lot)");
 	}
 
-	Plot(stAutoPrec(balance), bTitle, 
+	// Invert?
+	if (stBdInvertBroker) {
+		balance = stInvert(balance);
+	}
+	
+	Plot(stAutoPrec(balance), 
+		 WriteIf(stBdInvertBroker, "Inverted ", "") + bTitle, 
 		 colorLightBlue, 
 		 styleLine | styleThick, 
 		 Null, Null, 0, 5);
