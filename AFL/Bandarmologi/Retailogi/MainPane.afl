@@ -37,10 +37,12 @@ _SECTION_BEGIN("Price");
 	
 	SetChartOptions(0, chartShowDates);
 	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.3)));
+	minPrice = LowestVisibleValue(L);
+	maxPrice = HighestVisibleValue(H);
 	Plot( C, "Close",  
 		  IIf(C >= Open, ColorBlend(GetChartBkColor(), colorGreen, 1.0), 
 		                 ColorBlend(GetChartBkColor(), colorBrown, 1.0)), 
-		  GetPriceStyle() | styleOwnScale, Null, Null, 0, 1); 
+		  GetPriceStyle() | styleOwnScale, minPrice, maxPrice, 0, 1); 
 _SECTION_END();
 
 
@@ -95,6 +97,12 @@ _SECTION_BEGIN("Retailogi");
 		PlotShapes( Sell * shapeDownArrow, colorRed, 0, holding);
 	}
 
+	//
+	// Average Price
+	//
+	avgPrice = stBdGetRetailAvgPrice(stRetailogiStartBalanceDate);
+	Plot(avgPrice, "Retail Avg Price", colorGreen, styleDashed | styleOwnScale | styleThick, minPrice, maxPrice);
+	
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();

@@ -966,7 +966,8 @@ function stAutoColorGradient(curVal)
 	hiVal = stHighestValue(curVal, True);
 	range = hiVal - loVal;
 	curVal = curVal - loVal;
-	return ColorRGB((1 - curVal / range) * 255,  curVal / range * 255, 0);
+	ColorRGB((1 - curVal / range) * 255,  curVal / range * 255, 0);
+	return color;
 }
 
 //
@@ -979,7 +980,6 @@ function stPlotLine(value, chartTitle, satuan, lowestScale, highestScale, withTe
 	lBar = stLowestBar;
 	if (IsEmpty(lowestScale))
 		lowestScale = lValue;
-	
 	
 	hValue = stHighestValue(value, True);
 	hBar = stHighestBar;

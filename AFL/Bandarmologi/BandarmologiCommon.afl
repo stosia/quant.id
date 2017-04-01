@@ -321,9 +321,9 @@ function stBdGetRetailCumValue(start_date_str)
 }
 
 //
-// Get cummulative retail ownership in shares
+// Get cummulative retail buy volume in shares
 //
-function stBdGetRetailCumShares(start_date_str)
+function stBdGetRetailCumBuyShares(start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
@@ -333,7 +333,7 @@ function stBdGetRetailCumShares(start_date_str)
 		}
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_net_vol) AS cumulative_sum, \n" + 
+	sql = "   SELECT @running_total := @running_total + SUM(int_buy_vol) AS cumulative_sum, \n" + 
 	      "          dtime \n" + 
 		  "     FROM v_adj_intraday_broker2 t \n" + 
 		  "		JOIN (SELECT @running_total := 0) r \n" + 
@@ -344,10 +344,73 @@ function stBdGetRetailCumShares(start_date_str)
 		  "	GROUP BY dtime \n" + 
 		  "	ORDER BY t.dtime ASC \n";
 
-	varName = "RetailCumShares";
+	varName = "RetailCumBuyValue";
 	result = stCachedSQL(varName, sql);
+	return result;
+}
+
+//
+// Get cummulative retail sell volume in shares
+//
+function stBdGetRetailCumSellShares(start_date_str)
+{
+	if (Interval() < inDaily) {
+		_N(start_date_str = stBdGetStartDate(0));
+	} else {
+		if (Interval() > inDaily) {
+			stAlert("Error: Interval greater than daily is not supported yet!");
+		}
+	}
+	
+	sql = "   SELECT @running_total := @running_total + SUM(int_sell_vol) AS cumulative_sum, \n" + 
+	      "          dtime \n" + 
+		  "     FROM v_adj_intraday_broker2 t \n" + 
+		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+		  "		 AND ticker = '" + Name() + "' \n" + 
+		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+		  "	GROUP BY dtime \n" + 
+		  "	ORDER BY t.dtime ASC \n";
+
+	varName = "RetailCumSellValue";
+	result = stCachedSQL(varName, sql);
+	return result;
+}
+
+//
+// Get cummulative retail ownership in shares
+//
+function stBdGetRetailCumShares(start_date_str)
+{
+	cumBuyShares = stBdGetRetailCumBuyShares(start_date_str);
+	cumSellShares = stBdGetRetailCumSellShares(start_date_str);
+	result = cumBuyShares - cumSellShares;
 	result = stShiftPositive(result);
 	return result;
+}
+
+//
+// Get average price of retail.
+// This also sets stBdRetailProfit global variable.
+//
+function stBdGetRetailAvgPrice(start_date_str)
+{
+	global stBdRetailProfit;
+	
+	cumBuyValue = stBdGetRetailCumBuyValue(start_date_str) * MILYAR;
+	buyValue = cumBuyValue - Ref(cumBuyValue, -1);
+	cumBuyShares = stBdGetRetailCumBuyShares(start_date_str);
+	buyShares = cumBuyShares - Ref(cumBuyShares, -1);
+	cumSellValue = stBdGetRetailCumSellValue(start_date_str) * MILYAR;
+	sellValue = cumSellValue - Ref(cumSellValue, -1);
+	cumSellShares = stBdGetRetailCumSellShares(start_date_str);
+	sellShares = cumSellShares - Ref(cumSellShares, -1);
+	
+	avgPrice = stGetAvgPriceDaily(buyValue, buyShares, sellValue, sellShares);
+	stBdRetailProfit = stProfit;
+	
+	return avgPrice;
 }
 
 //
