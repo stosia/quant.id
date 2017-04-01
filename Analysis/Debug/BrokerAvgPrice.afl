@@ -38,8 +38,8 @@
 
 #include_once <..\Quant.id\AFL\Bandarmologi\BrokerDetail\BrokerDetailCommon.afl>
 
-Filter = Name() == "BNLI";
-stBrokerName = "CC";
-stBrokerStartDate = "2016-01-01";
+Filter = 1;
+stBrokerName = ParamStr("Broker Name", "YP");
+stBrokerStartDate = ParamStr("Start Date", "2016-01-01");
 avgPrice = stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
 
