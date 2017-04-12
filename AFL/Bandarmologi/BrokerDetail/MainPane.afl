@@ -90,12 +90,19 @@ _SECTION_BEGIN("Broker Detail");
 	if (stBdInvertBroker) {
 		balance = stInvert(balance);
 	}
+
+	lowestBalance = LowestVisibleValue(balance);
+	highestBalance = HighestVisibleValue(balance);
 	
 	Plot(stAutoPrec(balance), 
 		 WriteIf(stBdInvertBroker, "Inverted ", "") + bTitle, 
 		 colorLightBlue, 
 		 styleLine | styleThick, 
 		 Null, Null, 0, 5);
+
+	x = LastValue( BarIndex() ) + 1;
+	y = LastValue( balance );
+	PlotTextSetFont( stBrokerName, "Arial", 10, x, y, GetChartBkColor(), colorLightBlue, -6 );
 
 	// Average price and broker's P/L
 	avgPrice = stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
@@ -108,6 +115,10 @@ _SECTION_BEGIN("Broker Detail");
 		  HighestHigh, 
 		  0, 
 		  1); 
+
+	x = LastValue( BarIndex() ) + 1;
+	y = (LastValue( avgPrice ) - LowestLow) / (HighestHigh - LowestLow) * (highestBalance - lowestBalance) + lowestBalance;
+	PlotTextSetFont( "Avg", "Arial", 10, x, y, GetChartBkColor(), colorGreen, 2 );
 
 _SECTION_END();
 

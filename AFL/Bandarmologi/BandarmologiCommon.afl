@@ -62,12 +62,12 @@ function stBdGetBrokerCumBuyShares(broker_name, start_date_str)
 	_N( sql = " SELECT @running_total := @running_total + int_buy_vol AS cum_buy, \n" + 
 			  "        dtime \n" + 
 			  " FROM  v_adj_intraday_broker \n" +
-			  "	JOIN (SELECT @running_total := 0) r \n" + 
+			  "	JOIN (SELECT @running_total := 0.0) r \n" + 
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
 		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
 		      " ORDER BY dtime Asc" );
 	
-	varName = "bdcumbuyshares-" + broker_name;
+	varName = "BdCumBuyShares-" + broker_name;
 	result = stCachedSQL(varName, sql);
 	
 	return result;
@@ -86,16 +86,16 @@ function stBdGetBrokerCumBuyValue(broker_name, start_date_str)
 		}
 	}
 	
-	_N( sql = " SELECT @running_total := @running_total + (int_buy_value / 1000000000.0) AS cum_buy, \n" + 
+	_N( sql = " SELECT @running_total := @running_total + int_buy_value AS cum_buy, \n" + 
 			  "        dtime \n" + 
 			  " FROM  v_adj_intraday_broker \n" +
-			  "	JOIN (SELECT @running_total := 0) r \n" + 
+			  "	JOIN (SELECT @running_total := 0.0) r \n" + 
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
 		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
 		      " ORDER BY dtime Asc" );
 	
-	varName = "bdcumbuy-" + broker_name;
-	result = stCachedSQL(varName, sql);
+	varName = "BdCumBuyValue-" + broker_name;
+	result = stCachedSQL(varName, sql) / MILYAR;
 	
 	return result;
 }
@@ -116,12 +116,12 @@ function stBdGetBrokerCumSellShares(broker_name, start_date_str)
 	_N( sql = " SELECT @running_total := @running_total + int_sell_vol AS cum_sell, \n" + 
 			  "        dtime \n" + 
 			  " FROM  v_adj_intraday_broker \n" +
-			  "	JOIN (SELECT @running_total := 0) r \n" + 
+			  "	JOIN (SELECT @running_total := 0.0) r \n" + 
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
 		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
 		      " ORDER BY dtime Asc" );
 	
-	varName = "bdcumsellshares-" + broker_name;
+	varName = "BdCumSellShares-" + broker_name;
 	result = stCachedSQL(varName, sql);
 	
 	return result;
@@ -140,16 +140,16 @@ function stBdGetBrokerCumSellValue(broker_name, start_date_str)
 		}
 	}
 	
-	_N( sql = " SELECT @running_total := @running_total + (int_sell_value / 1000000000.0) AS cum_sell, \n" + 
+	_N( sql = " SELECT @running_total := @running_total + int_sell_value AS cum_sell, \n" + 
 			  "        dtime \n" + 
 			  " FROM  v_adj_intraday_broker \n" +
-			  "	JOIN (SELECT @running_total := 0) r \n" + 
+			  "	JOIN (SELECT @running_total := 0.0) r \n" + 
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
 		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
 		      " ORDER BY dtime Asc" );
 	
-	varName = "bdcumsell-" + broker_name;
-	result = stCachedSQL(varName, sql);
+	varName = "BdCumSellValue-" + broker_name;
+	result = stCachedSQL(varName, sql) / MILYAR;
 	
 	return result;
 }
@@ -263,10 +263,10 @@ function stBdGetRetailCumBuyValue(start_date_str)
 		}
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_buy_value)/1000000000.0 AS cumulative_sum, \n" + 
+	sql = "   SELECT @running_total := @running_total + SUM(int_buy_value) AS cumulative_sum, \n" + 
 	      "          dtime \n" + 
 		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
 		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
 		  "		 AND ticker = '" + Name() + "' \n" + 
 		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
@@ -274,8 +274,8 @@ function stBdGetRetailCumBuyValue(start_date_str)
 		  "	GROUP BY dtime \n" + 
 		  "	ORDER BY t.dtime ASC \n";
 
-	varName = "RetailCumBuyValue";
-	result = stCachedSQL(varName, sql);
+	varName = "BdCumBuyValue-Retail";
+	result = stCachedSQL(varName, sql) / MILYAR;
 	return result;
 }
 
@@ -292,10 +292,10 @@ function stBdGetRetailCumSellValue(start_date_str)
 		}
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_sell_value)/1000000000.0 AS cumulative_sum, \n" + 
+	sql = "   SELECT @running_total := @running_total + SUM(int_sell_value) AS cumulative_sum, \n" + 
 	      "          dtime \n" + 
 		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
 		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
 		  "		 AND ticker = '" + Name() + "' \n" + 
 		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
@@ -303,8 +303,8 @@ function stBdGetRetailCumSellValue(start_date_str)
 		  "	GROUP BY dtime \n" + 
 		  "	ORDER BY t.dtime ASC \n";
 
-	varName = "RetailCumSellValue";
-	result = stCachedSQL(varName, sql);
+	varName = "BdCumSellValue-Retail";
+	result = stCachedSQL(varName, sql) / MILYAR;
 	return result;
 }
 
@@ -336,7 +336,7 @@ function stBdGetRetailCumBuyShares(start_date_str)
 	sql = "   SELECT @running_total := @running_total + SUM(int_buy_vol) AS cumulative_sum, \n" + 
 	      "          dtime \n" + 
 		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
 		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
 		  "		 AND ticker = '" + Name() + "' \n" + 
 		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
@@ -344,7 +344,7 @@ function stBdGetRetailCumBuyShares(start_date_str)
 		  "	GROUP BY dtime \n" + 
 		  "	ORDER BY t.dtime ASC \n";
 
-	varName = "RetailCumBuyValue";
+	varName = "BdCumBuyShares-Retail";
 	result = stCachedSQL(varName, sql);
 	return result;
 }
@@ -365,7 +365,7 @@ function stBdGetRetailCumSellShares(start_date_str)
 	sql = "   SELECT @running_total := @running_total + SUM(int_sell_vol) AS cumulative_sum, \n" + 
 	      "          dtime \n" + 
 		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
 		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
 		  "		 AND ticker = '" + Name() + "' \n" + 
 		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
@@ -373,7 +373,7 @@ function stBdGetRetailCumSellShares(start_date_str)
 		  "	GROUP BY dtime \n" + 
 		  "	ORDER BY t.dtime ASC \n";
 
-	varName = "RetailCumSellValue";
+	varName = "BdCumSellShares-Retail";
 	result = stCachedSQL(varName, sql);
 	return result;
 }
@@ -426,10 +426,10 @@ function stBdGetNonRetailCumValue(start_date_str)
 		}
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_net_value)/1000000000.0 AS cumulative_sum, \n" + 
+	sql = "   SELECT @running_total := @running_total + SUM(int_net_value) AS cumulative_sum, \n" + 
 	      "          dtime \n" + 
 		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
 		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
 		  "		 AND ticker = '" + Name() + "' \n" + 
 		  "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
@@ -437,8 +437,8 @@ function stBdGetNonRetailCumValue(start_date_str)
 		  "	GROUP BY dtime \n" + 
 		  "	ORDER BY t.dtime ASC \n";
 
-	varName = "NonRetailCumValue";
-	result = stCachedSQL(varName, sql);
+	varName = "BdCumValue-NonRetail";
+	result = stCachedSQL(varName, sql) / MILYAR;
 	result = stShiftPositive(result);
 	return result;
 }
@@ -459,7 +459,7 @@ function stBdGetNonRetailCumShares(start_date_str)
 	sql = "   SELECT @running_total := @running_total + SUM(int_net_vol) AS cumulative_sum, \n" + 
 	      "          dtime \n" + 
 		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0) r \n" + 
+		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
 		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
 		  "		 AND ticker = '" + Name() + "' \n" + 
 		  "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
@@ -467,7 +467,7 @@ function stBdGetNonRetailCumShares(start_date_str)
 		  "	GROUP BY dtime \n" + 
 		  "	ORDER BY t.dtime ASC \n";
 
-	varName = "NonRetailCumShares";
+	varName = "BdCumShares-NonRetail";
 	result = stCachedSQL(varName, sql);
 	result = stShiftPositive(result);
 	return result;

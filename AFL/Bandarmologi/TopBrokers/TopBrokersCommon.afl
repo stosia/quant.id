@@ -156,13 +156,14 @@ function stBdGetTopSellerName(index)
 //
 // Plot with name
 //
-function stBdPlot(brokerName, balance, color, style, index)
+function stBdPlot(brokerName, is_buyer, balance, color, style, index)
 {
 	Plot(balance, brokerName, color, style | styleThick | styleNoLabel, Null, Null, 0, 5);
 	PlotText( brokerName, BarCount-4-index, balance[BarCount-4-index], GetChartBkColor(), color, 0);
-	x = LastValue( BarIndex() ) + 1;
+	x = LastValue( BarIndex() ) + IIf(is_buyer, 1, 3);
     y = LastValue( balance );
     fontsize = 10;
+    
     PlotTextSetFont( brokerName, "Arial", fontsize, x, y, GetChartBkColor(), color, -fontsize/2 );
 }
 
@@ -190,7 +191,7 @@ function stBdPlotBroker(brokerName, is_buyer, index)
 		} 
 	}
 	
-	stBdPlot(brokerName, balance, color, style, index);
+	stBdPlot(brokerName, is_buyer, balance, color, style, index);
 }
 
 //

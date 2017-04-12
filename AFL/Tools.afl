@@ -705,13 +705,12 @@ function stGetAvgPriceIntraday(buyValue, buyShares, sellValue, sellShares)
 				}
 				
 				// Initial value
+				prevAvg = typ[i];
 				if (lwst < 0) {
 					prevShares = -lwst;
-					prevAvg = typ[i];
 					prevProfit = 0;
 				} else {
 					prevShares = 0;
-					prevAvg = 0;
 					prevProfit = 0;
 				}
 

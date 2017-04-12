@@ -44,10 +44,7 @@ _SECTION_BEGIN("Top Brokers Acc/Dist");
 		
 	_N(Title = StrFormat("Acc/Dist " + satuan + " -- {{VALUES}}"));
 	
-	// Background text
-	stSetBackgroundTitle(Name() + " Top " + stBdParamTopCount + " Brokers Acc/Dist");
-	stSetBackgroundSubtitle(QID_VERSION_LINE);
-
+	brokerCount = 0;
 	sellersTotal = 0;
 	_N(sellersName = "");
 	for (i=0; i<stBdParamTopCount; ++i) {
@@ -63,6 +60,7 @@ _SECTION_BEGIN("Top Brokers Acc/Dist");
 			balance = stBdGetBrokerCumShares(brokerName, stBdStartBalanceDate);
 			
 		sellersTotal += balance;
+		brokerCount += 1;
 	}
 	
 	buyersTotal = 0;
@@ -80,31 +78,51 @@ _SECTION_BEGIN("Top Brokers Acc/Dist");
 			balance = stBdGetBrokerCumShares(brokerName, stBdStartBalanceDate);
 			
 		buyersTotal += balance;
+		brokerCount += 1;
 	}
+
+	// Background text
+	stSetBackgroundTitle(Name() + " Top " + brokerCount + " Brokers Acc/Dist");
+	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
 	Plot(stAutoPrec(buyersTotal), 
 		 "Total top buyers (" + buyersName + ")", 
 		 colorLightBlue, 
-		 styleLine | styleThick);
+		 styleDashed | styleThick);
 	
 	Plot(stAutoPrec(sellersTotal), 
 		 "Total top sellers (" + sellersName + ")", 
 		 colorLightOrange, 
-		 styleLine | styleThick);
+		 styleDashed | styleThick);
 	
-	netBroker = buyersTotal - sellersTotal;
+	intBuyer = buyersTotal  - Ref(buyersTotal, -1);
+	intSeller = sellersTotal - Ref(sellersTotal, -1);
+	
+	//netBroker = buyersTotal - sellersTotal;
+	netBroker = intBuyer + intSeller;
+	
 	Plot(stAutoPrec(abs(netBroker)),
-		 "Net Acc/Dist", 
-		 IIf(netBroker >= 0, colorLightBlue, colorLightOrange),
-		 styleHistogram | styleThick,
-		 Null,
-		 Null,
+		 "Net " + WriteIf(netBroker >= 0, "Accummulation", "Distribution"), 
+		 IIf(netBroker >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.3), 
+							 ColorBlend(colorLightOrange, GetChartBkColor(), 0.3)),
+		 styleHistogram | styleThick | styleOwnScale,
+		 0,
+		 HighestVisibleValue(abs(netBroker)) * 1.5,
 		 0,
 		 0,
 		 5);
 	
+	accDistBalance = Cum(netBroker);
+	Plot(stAutoPrec(accDistBalance),
+		 "Cummulative Acc/Dist", 
+		 colorLightBlue,
+		 styleLine | styleThick,
+		 Null,
+		 Null,
+		 0,
+		 1,
+		 2);
 		 
-	
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
