@@ -56,9 +56,9 @@ _SECTION_BEGIN("Foreign Net");
 	minNet = 0;
 	
 	Plot(stAutoPrec(abs(Net)), "NetPlot", IIf(B >= S, colorBlueGrey, colorLightOrange), 
-		 styleHistogram | styleNoTitle | styleOwnScale, 
+		 styleHistogram | styleNoTitle, 
 		 minNet, maxNet, 0, 4, 5);
-	Plot(Net, "Net (B Rp)", IIf(B >= S, colorBlueGrey, colorLightOrange), styleNoDraw | styleOwnScale);
+	Plot(Net, "Net " + WriteIf(B >= S, "Buy", "Sell") + " (B Rp)", IIf(B >= S, colorBlueGrey, colorLightOrange), styleNoDraw | styleOwnScale);
 	
 	//Plot(B, "Buy", bcolor, styleLine | styleNoTitle, minNet, maxNet, 0, 1, 1);
 	//Plot(S, "Sell", scolor, styleLine | styleNoTitle, minNet, maxNet, 0, 1, 1);

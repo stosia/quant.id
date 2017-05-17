@@ -93,7 +93,7 @@ function stBdGetBrokerCumBuyValue(broker_name, start_date_str)
 		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
 		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
 		      " ORDER BY dtime Asc" );
-	
+
 	varName = "BdCumBuyValue-" + broker_name;
 	result = stCachedSQL(varName, sql) / MILYAR;
 	
@@ -177,8 +177,8 @@ function stBdGetBrokerCumShares(broker_name, start_date_str)
 	}
 
 	//balance = cumBuy - cumSell;
-	buyShares = cumBuy - Ref(cumBuy, -1);
-	sellShares = cumSell - Ref(cumSell, -1);
+	buyShares = stGetIntervalFromCum(cumBuy);
+	sellShares = stGetIntervalFromCum(cumSell);
 	
 	balance = stGetHolding(buyShares, sellShares);
 	
@@ -207,8 +207,8 @@ function stBdGetBrokerCumValue(broker_name, start_date_str)
 		cumBuy = stBdGetBrokerCumBuyValue(broker_name, start_date_str);
 	}
 
-	buyValue = cumBuy - Ref(cumBuy, -1);
-	sellValue = cumSell - Ref(cumSell, -1);
+	buyValue = stGetIntervalFromCum(cumBuy);
+	sellValue = stGetIntervalFromCum(cumSell);
 	
 	balance = stGetHolding(buyValue, sellValue);
 	return balance;
@@ -233,16 +233,16 @@ function stBdGetBrokerAveragePrice(broker_name, start_date_str)
 	}
 
 	cumBuyShares = stBdGetBrokerCumBuyShares(broker_name, start_date_str);
-	buyShares = cumBuyShares - Ref(cumBuyShares, -1);
+	buyShares = stGetIntervalFromCum(cumBuyShares);
 	
 	cumBuyValue = stBdGetBrokerCumBuyValue(broker_name, start_date_str) * MILYAR;
-	buyValue = cumBuyValue - Ref(cumBuyValue, -1);
+	buyValue = stGetIntervalFromCum(cumBuyValue);
 
 	cumSellShares = stBdGetBrokerCumSellShares(broker_name, start_date_str);
-	sellShares = cumSellShares - Ref(cumSellShares, -1);
+	sellShares = stGetIntervalFromCum(cumSellShares);
 
 	cumSellValue = stBdGetBrokerCumSellValue(broker_name, start_date_str) * MILYAR;
-	sellValue = cumSellValue - Ref(cumSellValue, -1);
+	sellValue = stGetIntervalFromCum(cumSellValue);
 	
 	avgPrice = stGetAvgPrice(buyValue, buyShares, sellValue, sellShares);
 	stBrokerProfit = stProfit;
@@ -399,13 +399,13 @@ function stBdGetRetailAvgPrice(start_date_str)
 	global stBdRetailProfit;
 	
 	cumBuyValue = stBdGetRetailCumBuyValue(start_date_str) * MILYAR;
-	buyValue = cumBuyValue - Ref(cumBuyValue, -1);
+	buyValue = stGetIntervalFromCum(cumBuyValue);
 	cumBuyShares = stBdGetRetailCumBuyShares(start_date_str);
-	buyShares = cumBuyShares - Ref(cumBuyShares, -1);
+	buyShares = stGetIntervalFromCum(cumBuyShares);
 	cumSellValue = stBdGetRetailCumSellValue(start_date_str) * MILYAR;
-	sellValue = cumSellValue - Ref(cumSellValue, -1);
+	sellValue = stGetIntervalFromCum(cumSellValue);
 	cumSellShares = stBdGetRetailCumSellShares(start_date_str);
-	sellShares = cumSellShares - Ref(cumSellShares, -1);
+	sellShares = stGetIntervalFromCum(cumSellShares);
 	
 	avgPrice = stGetAvgPriceDaily(buyValue, buyShares, sellValue, sellShares);
 	stBdRetailProfit = stProfit;

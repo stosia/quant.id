@@ -37,7 +37,7 @@ _SECTION_BEGIN("Retail Profit/Loss");
 	stInitRetailogi(False);
 	
 	// Background titles
-	stSetBackgroundTitle(Name() + " Cum Inverted Retail P/L (B Rp)");
+	stSetBackgroundTitle(Name() + " Cum Retail P/L (B Rp)");
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
 	stBdGetRetailAvgPrice(stRetailogiStartBalanceDate);;

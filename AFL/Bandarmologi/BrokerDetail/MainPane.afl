@@ -96,7 +96,7 @@ _SECTION_BEGIN("Broker Detail");
 	
 	Plot(stAutoPrec(balance), 
 		 WriteIf(stBdInvertBroker, "Inverted ", "") + bTitle, 
-		 colorLightBlue, 
+		 ColorBlend(colorRed, GetChartBkColor(), 0.2), 
 		 styleLine | styleThick, 
 		 Null, Null, 0, 5);
 
@@ -104,6 +104,23 @@ _SECTION_BEGIN("Broker Detail");
 	y = LastValue( balance );
 	PlotTextSetFont( stBrokerName, "Arial", 10, x, y, GetChartBkColor(), colorLightBlue, -6 );
 
+	// MA5 & 20
+	if (ParamToggle("Show MA", "No|Yes", 1)) {
+		MA_shortPeriod = Param("Short MA Period", 5, 2, 100);
+		MA_longPeriod = Param("Long MA Period", 20, 2, 100);
+		
+		mas = MA(balance, MA_shortPeriod);
+		mal = MA(balance, MA_longPeriod);
+		
+		Plot(stAutoPrec(mas), "MA" + MA_shortPeriod, ColorBlend(colorRed, GetChartBkColor(), 0.5), styleLine | styleNoLabel);
+		Plot(stAutoPrec(mal), "MA" + MA_longPeriod, ColorBlend(colorRed, GetChartBkColor(), 0.5), styleDashed | styleNoLabel);
+		
+		Buy = Cross(mas, mal);
+		Sell = Cross(mal, mas);
+		PlotShapes( Buy * shapeUpArrow, colorGreen, 0, mas); 
+		PlotShapes( Sell * shapeDownArrow, colorRed, 0, mal);
+	}
+	
 	// Average price and broker's P/L
 	avgPrice = stBdGetBrokerAveragePrice(stBrokerName, stBrokerStartDate);
 

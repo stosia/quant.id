@@ -564,6 +564,16 @@ function stLastDayValue(array)
 }
 
 //
+// Get interval value from cummulative array
+//
+function stGetIntervalFromCum(cumArr)
+{
+	prevCum = Ref(cumArr, -1);
+	intValue = IIf(IsEmpty(prevCum), cumArr, cumArr - prevCum);
+	return intValue;
+}
+
+//
 // Invert an array, where the lowest value becomes the highest and
 // vice versa.
 //
@@ -612,6 +622,60 @@ function stGetHoldingIntraday(buyShares, sellShares)
 	netShares = buyShares - sellShares;
 	
 	i = 0;
+	startIndex = -1;
+	while (i < BarCount) {
+		if (dn[i] != last_dn) {
+			holding[i] = Null;
+		} else {
+			if (startIndex == -1) {
+				startIndex = i;
+			}
+			
+			if (IsEmpty(netShares[i])) {
+				netShares[i] = 0;
+			}
+		}
+		
+		i += 1;
+	}
+	
+	
+	// Get the lowest value for the day
+	total = netShares[startIndex];
+	lwst = total;
+	for (j = startIndex + 1; j < BarCount && dn[j] == last_dn; ++j) {
+		total = total + netShares[j];
+		if (total < lwst)
+			lwst = total;
+	}
+
+	if (lwst < 0) {
+		holding[startIndex] = -lwst + netShares[startIndex];
+	} else {
+		holding[startIndex] = netShares[startIndex];
+	}
+	
+	for (i=startIndex + 1; i < BarCount; ++i) {
+		holding[i] = holding[i-1] + netShares[i];
+	}
+	
+	if (Status("ActionEx") == actionExplore) {
+		AddColumn(buyShares, "buyShares", 1.0);
+		AddColumn(sellShares, "sellShares", 1.0);
+		AddColumn(holding, "holding", 1.0);
+	}
+	
+	return holding;
+}
+
+function stGetHoldingIntraday1(buyShares, sellShares)
+{
+	dn = DateNum();
+	last_dn = dn[BarCount - 1];
+	
+	netShares = buyShares - sellShares;
+	
+	i = 0;
 	while (i < BarCount) {
 		if (IsEmpty(netShares[i]) || dn[i] != last_dn) {
 			holding[i] = Null;
@@ -645,7 +709,7 @@ function stGetHoldingIntraday(buyShares, sellShares)
 		}
 	}
 	
-	if (Status("ActionEx") == actionExplore) {
+	if (False AND Status("ActionEx") == actionExplore) {
 		AddColumn(buyShares, "buyShares", 1.0);
 		AddColumn(sellShares, "sellShares", 1.0);
 		AddColumn(holding, "holding", 1.0);
@@ -741,7 +805,7 @@ function stGetAvgPriceIntraday(buyValue, buyShares, sellValue, sellShares)
 		}
 	}
 	
-	if (Status("ActionEx") == actionExplore) {
+	if (False AND Status("ActionEx") == actionExplore) {
 		//AddColumn(BarIndex(), "i", 1.0);
 		//AddColumn(branch, "branch", 1.0);
 		AddColumn(buyShares, "buyShares", 1.0);
@@ -820,7 +884,7 @@ function stGetAvgPriceDaily(buyValue, buyShares, sellValue, sellShares)
 		}
 	}
 	
-	if (Status("ActionEx") == actionExplore) {
+	if (False AND Status("ActionEx") == actionExplore) {
 		//AddColumn(BarIndex(), "i", 1.0);
 		//AddColumn(branch, "branch", 1.0);
 		AddColumn(buyShares, "buyShares", 1.0);

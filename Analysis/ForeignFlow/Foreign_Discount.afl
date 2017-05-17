@@ -1,0 +1,46 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
+ * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
+ * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
+ * produk yang dijual secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ */
+ 
+#include_once <..\Quant.id\AFL\Tools.afl>
+#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlowCommon.afl>
+
+#pragma maxthreads 4
+ 
+// Set to daily since the datasource is intraday
+TimeFrameSet(inDaily);
+
+ffAvg = stGetFFAverage();
+
+discount = (C - ffAvg) * 100 / ffAvg;
+AddColumn(discount, "Discount (%)");
+
+shares = stGetFFHolding();
+holdingValue = shares * C / MILYAR;
+AddColumn(holdingValue, "Holding value (B)");
+
+tsxValue = MA(Volume * C / MILYAR, 20);
+AddColumn(tsxValue, "Avg daily tsx value (B)");
+
+// All symbols and quotes accepted.
+// Control which symbols are included/excluded from the Exploration filter settings
+Filter = BarCount > 0 AND tsxValue >= 0.5;

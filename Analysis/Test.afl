@@ -1,12 +1,15 @@
-#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlowCommon.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\BandarmologiCommon.afl>
 
-Filter = 1;
+// TimeFrameSet(in5Minute);
 
-period = 60;
+Filter = Name() == "MDLN";
 
-ffHolding = stGetFFHolding();
-matchCount = stSimpleCorrelation(C, ffHolding, period);
-matchPercent = int(matchCount * 100 / period);
+cumBuy = stBdGetBrokerCumBuyValue("CG", "2017-05-08");
+cumSell = stBdGetBrokerCumSellValue("CG", "2017-05-08");
 
-AddColumn(matchPercent, "Foreign Correlation");
+balance = stBdGetBrokerCumValue("CG", "2017-05-08");
+
+AddColumn(cumBuy, "cumBuy");
+AddColumn(cumSell, "cumSell");
+AddColumn(balance, "balance");
 
