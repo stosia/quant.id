@@ -102,7 +102,37 @@ _SECTION_BEGIN("Retailogi");
 	//
 	avgPrice = stBdGetRetailAvgPrice(stRetailogiStartBalanceDate);
 	Plot(avgPrice, "Retail Avg Price", colorGreen, styleDashed | styleOwnScale | styleThick, minPrice, maxPrice);
+
+	if (maEnabled AND Interval() == inDaily) {
+		printf("<b>" + Name() + " RECOMMENDATIONS:</b>\n");
+		printf("----------------------------------------------\n");
 	
+		score = stMARecommendation(holding, ma1, ma2);
+		if (!stRetailogiParamUseIVR)
+			score = score * (-1);
+		_N(reason = stRecReason);
+		
+		printf("<b>Retail:  " + EncodeColor(stStatusColor(score)) + stRecText(score) + "</b>" + EncodeColor(colorBlack) + "\n");
+		printf("" + reason + "\n");
+		printf("----------------------------------------------\n");
+		
+		stDisplayRec(score, 0);
+	}
+	
+	//
+	// Bar
+	//
+	netBar = stGetIntervalFromCum(holding);
+	absNet = abs(netBar);
+	maxNet = HighestVisibleValue(absNet);
+	Plot(stAutoPrec(absNet), "Net ", 
+		 IIf(netBar >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.3), 
+						  ColorBlend(colorLightOrange, GetChartBkColor(), 0.3)), 
+		 styleHistogram | styleThick | styleOwnScale | styleNoTitle, 0, maxNet * 2, 0, 0, 5);
+	Plot(netBar, "Net " + WriteIf(netBar >= 0, "Buy ", "Sell ") + satuan, 
+		 IIf(netBar >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.3), 
+						  ColorBlend(colorLightOrange, GetChartBkColor(), 0.3)), 
+		 styleNoDraw | styleNoLabel | styleOwnScale);
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();

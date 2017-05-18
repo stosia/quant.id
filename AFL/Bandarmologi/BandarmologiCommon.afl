@@ -472,4 +472,3 @@ function stBdGetNonRetailCumShares(start_date_str)
 	result = stShiftPositive(result);
 	return result;
 }
-

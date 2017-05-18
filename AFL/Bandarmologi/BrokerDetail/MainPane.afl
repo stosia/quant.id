@@ -81,9 +81,11 @@ _SECTION_BEGIN("Broker Detail");
 	if (stBdParamUseValue) {
 		balance = stBdGetBrokerCumValue(stBrokerName, stBrokerStartDate);
 		_N(bTitle = "Holding (B Rp)");
+		_N(satuan = "(B Rp)");
 	} else {
 		balance = stBdGetBrokerCumShares(stBrokerName, stBrokerStartDate) / 100;
 		_N(bTitle = "Holding (Lot)");
+		_N(satuan = "(Lot)");
 	}
 
 	// Invert?
@@ -105,7 +107,8 @@ _SECTION_BEGIN("Broker Detail");
 	PlotTextSetFont( stBrokerName, "Arial", 10, x, y, GetChartBkColor(), colorLightBlue, -6 );
 
 	// MA5 & 20
-	if (ParamToggle("Show MA", "No|Yes", 1)) {
+	maEnabled = ParamToggle("Show MA", "No|Yes", 1);
+	if (maEnabled) {
 		MA_shortPeriod = Param("Short MA Period", 5, 2, 100);
 		MA_longPeriod = Param("Long MA Period", 20, 2, 100);
 		
@@ -137,8 +140,43 @@ _SECTION_BEGIN("Broker Detail");
 	y = (LastValue( avgPrice ) - LowestLow) / (HighestHigh - LowestLow) * (highestBalance - lowestBalance) + lowestBalance;
 	PlotTextSetFont( "Avg", "Arial", 10, x, y, GetChartBkColor(), colorGreen, 2 );
 
+	//
+	// Bar
+	//
+	netBar = stGetIntervalFromCum(balance);
+	absNet = abs(netBar);
+	maxNet = HighestVisibleValue(absNet);
+	Plot(stAutoPrec(absNet), "Net", 
+		 IIf(netBar >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.3), 
+						  ColorBlend(colorLightOrange, GetChartBkColor(), 0.3)), 
+		 styleHistogram | styleThick | styleOwnScale | styleNoTitle, 0, maxNet * 2, 0, 0, 5);
+		 
+	Plot(netBar, "Net " + WriteIf(netBar >= 0, "Buy ", "Sell ") + satuan, 
+		 IIf(netBar >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.3), 
+						  ColorBlend(colorLightOrange, GetChartBkColor(), 0.3)), 
+		 styleNoDraw | styleNoLabel | styleOwnScale);
+
 _SECTION_END();
 
+if (maEnabled AND Interval() == inDaily) {
+	printf("<b>" + Name() + " RECOMMENDATIONS:</b>\n");
+	printf("----------------------------------------------\n");
+	
+	invert = StrFind(ST_RETAIL_BROKERS, stBrokerName) != 0;
+	
+	score = ST_STATUS_NOP;
+	score = stMARecommendation(balance, mas, mal);
+	_N(reason = stRecReason);
+	
+	if (invert)
+		score = score * (-1);
+	
+	printf("<b>YP:  " + EncodeColor(stStatusColor(score)) + stRecText(score) + "</b>" + EncodeColor(colorBlack) + "\n");
+	printf("" + reason + "\n");
+	printf("----------------------------------------------\n");
+	
+	stDisplayRec(score, 0);
+}
 
 _t1 = GetPerformanceCounter();
 _TRACE( Name() + " Broker details " + stBrokerName + ": " + (_t1 - _t0) + " ms");

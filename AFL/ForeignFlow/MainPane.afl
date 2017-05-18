@@ -144,6 +144,35 @@ if (ffMaEnabled) {
 	PlotShapes( Buy * shapeUpArrow, colorGreen, 0, Min(L, O)); 
 }
 
+if (True OR Status("action") == actionCommentary ) {
+	score = ST_STATUS_NOP;
+	if (Interval() == inDaily) {
+		_N(reason = "");
+		days = 3;
+		
+		if (LastValue(Sum(abs(ffIntervalValue),days)) < 3) {
+			// Avg foreign transaction is too low
+			score = ST_STATUS_NOP;
+			_N(reason = "low transaction value");
+		} else if (LastValue(Sum(abs(ffIntervalValue),days)) / LastValue(Sum(intervalValue, days)) < 0.2) {
+			// Avg foreign transaction is too low (ratio wise)
+			score = ST_STATUS_NOP;
+			_N(reason = "low transaction ratio");
+		} else {
+			score = stMARecommendation(ffHolding, ffMA1, ffMA2);
+			_N(reason = stRecReason);
+		}
+		
+		printf("<b>" + Name() + " RECOMMENDATIONS:</b>\n");
+		printf("----------------------------------------------\n");
+		printf("<b>FOREIGN FLOW:  " + EncodeColor(stStatusColor(score)) + stRecText(score) + "</b>" + EncodeColor(colorBlack) + "\n");
+		printf("" + reason + "\n");
+		printf("----------------------------------------------\n");
+
+		stDisplayRec(score, 1);
+	}
+
+}
 
 _t1 = GetPerformanceCounter();
 _TRACE(Name() + " Foreign price: " + Int(_t1 - _t0) + " ms");

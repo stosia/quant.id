@@ -54,4 +54,3 @@ function stInitRetailogi(is_master)
 		stRetailogiParamUseIVR = StaticVarGet("stRetailogiParamUseIVR");
 	}
 }
-

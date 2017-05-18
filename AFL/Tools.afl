@@ -35,6 +35,13 @@ _N(QID_VERSION_LINE = "Quant.id v" + QID_VERSION_STR + " ©2017 Stosia TI");
 MILYAR = 1000000000.0;
 LOT = 100.0;
 
+/* Analysis status/recommendation constants */
+ST_STRONG_SELL = ST_STATUS_VBAD = -2;
+ST_SELL = ST_STATUS_BAD = -1;
+ST_HOLD = ST_STATUS_NOP = 0;
+ST_BUY = ST_STATUS_GOOD = 1;
+ST_STRONG_BUY = ST_STATUS_VGOOD = 2;
+
 Open = Ref(Close, -1);
 
 // Enable or disable database caching
@@ -86,6 +93,74 @@ function stMessageBoxY( txt, color, bkcolor, y )
 function stMessageBox( txt, color, bkcolor )
 {
 	stMessageBoxY(txt, color, bkcolor, 20);
+}
+
+//
+// Get color for recommendation
+//
+function stStatusColor(score)
+{
+	color = 0;
+	if (score <= ST_STATUS_VBAD)
+		color = colorRed;
+	else if (score <= ST_STATUS_BAD)
+		color = ColorBlend(colorRed, colorWhite, 0.5);
+	else if (score == 0)
+		color = colorDarkGrey;
+	else if (score >= ST_STATUS_VGOOD)
+		color = colorGreen;
+	else 
+		color = ColorBlend(colorGreen, colorWhite, 0.5);
+		
+	return color;
+}
+
+//
+// Get recommendation name
+//
+function stRecText(score)
+{
+	if (score <= ST_STATUS_VBAD)
+		_N(txt = "VSELL");
+	else if (score == ST_STATUS_BAD)
+		_N(txt = "SELL");
+	else if (score == 0)
+		_N(txt = "NOP");
+	else if (score == ST_STATUS_GOOD)
+		_N(txt = "BUY");
+	else
+		_N(txt = "VBUY");
+		
+	return txt;
+}
+
+function stDisplayRec( score, line )
+{
+	_N(txt = stRecText(score) );
+	if (score >= 2) {
+		color = colorWhite;
+		bkColor = colorBrightGreen;
+	} else if (score >= 1) {
+		color = colorWhite;
+		bkColor = colorGreen;
+	} else if (score == 0) {
+		color = colorWhite;
+		bkColor = colorLightGrey;
+	} else if (score == -1) {
+		color = colorWhite;
+		bkColor = colorLightOrange;
+	} else {
+		color = colorWhite;
+		bkColor = colorRed;
+	}
+	
+	GfxSetOverlayMode(1);
+	GfxSelectFont("Lucida Console", 10, 800 );
+	GfxSetTextAlign( 2  );
+	GfxSetTextColor( color );
+	GfxSetBkColor( bkColor );
+	GfxSetBkMode( 2 );
+	GfxTextOut( txt, Status("pxwidth")-62, line*16 );
 }
 
 //
@@ -566,10 +641,10 @@ function stLastDayValue(array)
 //
 // Get interval value from cummulative array
 //
-function stGetIntervalFromCum(cumArr)
+function stGetIntervalFromCum(arr)
 {
-	prevCum = Ref(cumArr, -1);
-	intValue = IIf(IsEmpty(prevCum), cumArr, cumArr - prevCum);
+	prevCum = Ref(arr, -1);
+	intValue = IIf(IsEmpty(prevCum), arr, arr - prevCum);
 	return intValue;
 }
 
@@ -1075,3 +1150,65 @@ function stPlotLine(value, chartTitle, satuan, lowestScale, highestScale, withTe
 	}
 }
 
+//
+// Get a recommendation based on MA trend analysis
+//
+function stMARecommendation(cumArr, mas, mal)
+{
+	global stRecReason;
+	
+	score = ST_STATUS_NOP;
+		
+	_N(stRecReason = "");
+	
+	selectedIndex = SelectedValue(BarIndex());
+	
+	lastTsc = cumArr[selectedIndex] - cumArr[selectedIndex-1];
+	
+	if (cumArr[selectedIndex] > mas[selectedIndex]) {
+		// Short term is trending up
+		if (mas[selectedIndex] >= mal[selectedIndex]) {
+			// Long term is also trending up!
+			if (lastTsc >= 0) {
+				score = ST_STATUS_VGOOD;
+				_N(stRecReason = "continuing strong accumulation trend");
+			} else {
+				score = ST_STATUS_GOOD;
+				_N(stRecReason = "strong accumulation trend but there is start of reversal in the last bar");
+			}
+		} else {
+			// Long term is lagging
+			if (lastTsc >= 0) {
+				score = ST_STATUS_GOOD;
+				_N(stRecReason = "continuing start uptrend against MA5");
+			} else {
+				score = ST_STATUS_NOP;
+				_N(stRecReason = "unclear short vs long term trend");
+			}
+		}
+	} else if (cumArr[selectedIndex] <= mas[selectedIndex]) {
+		// Short term is trending down
+		if (mas[selectedIndex] <= mal[selectedIndex]) {
+			// Long term is also trending down
+			if (lastTsc <= 0) {
+				score = ST_STATUS_VBAD;
+				_N(stRecReason = "continuing very strong distribution");
+			} else {
+				score = ST_STATUS_BAD;
+				_N(stRecReason = "very strong distribution but there is start of reversal in the last bar");
+			}
+		} else {
+			// Long term is still up
+			if (lastTsc <= 0) {
+				score = ST_STATUS_BAD;
+				_N(stRecReason = "continuing start downtrend against MA5");
+			} else {
+				score = ST_STATUS_NOP;
+				//_N(stRecReason = "unclear trend " + "a:" + cumArr[selectedIndex]/1000000 + ", mas:" + mas[selectedIndex]/1000000 + ", mal:" + mal[selectedIndex]/1000000 + ", tsc:" + lastTsc);
+				_N(stRecReason = "unclear trend. Last transaction is positive, MA5 > MA20, but holding is below MA5");
+			}
+		}
+	}
+	
+	return score;
+}

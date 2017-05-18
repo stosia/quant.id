@@ -1,0 +1,79 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * sumber ("source code")  modifikasi  atau karya  tersebut  kepada publik.
+ * Hal ini untuk menjaga keterbukaan pengetahuan di masa mendatang.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit,  asal tidak jahat.  Sebagai tambahan permintaan, kami menghimbau
+ * untuk  TIDAK  menjual kode/file ini secara apa adanya  atau dalam bundel
+ * produk yang dijual secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ */
+#include_once <..\Quant.id\AFL\ForeignFlow\ForeignFlowCommon.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\BrokerDetail\BrokerDetailCommon.afl>
+#include_once <..\Quant.id\AFL\Bandarmologi\Retailogi\RetailogiCommon.afl>
+ 
+TimeFrameSet(inDaily);
+Filter = True;
+
+//
+// Foreign
+//
+ffHolding = stGetFFHolding() / 100;
+
+ffIntervalSellValue = stGetFFIntervalSellValue();
+ffIntervalBuyValue = stGetFFIntervalBuyValue();
+ffIntervalValue = ffIntervalBuyValue - ffIntervalSellValue;
+intervalValue = stGetIntervalValue();
+
+days = 3;
+
+if (LastValue(Sum(abs(ffIntervalValue),days)) < 3) {
+	// Avg foreign transaction is too low
+	ffScore = ST_STATUS_NOP;
+	_N(ffReason = "low transaction value");
+} else if (LastValue(Sum(abs(ffIntervalValue),days)) / LastValue(Sum(intervalValue, days)) < 0.2) {
+	// Avg foreign transaction is too low (ratio wise)
+	ffScore = ST_STATUS_NOP;
+	_N(ffReason = "low transaction ratio");
+} else {
+	ffScore = stMARecommendation(ffHolding, MA(ffHolding,5), MA(ffHolding,20));
+	_N(ffReason = stRecReason);
+}
+
+
+//
+// YPLogi
+//
+_N(stBrokerStartDate = StaticVarGetText("stBrokerStartDate"));
+bdBalance = stBdGetBrokerCumShares("YP", stBrokerStartDate);
+bdScore = stMARecommendation(bdBalance, MA(bdBalance,5), MA(bdBalance,20));
+bdScore = bdScore * (-1);
+_N(bdReason = stRecReason);
+
+
+//
+// Retailogi
+//
+rHolding = stBdGetRetailCumShares(stRetailogiStartBalanceDate);
+rscore = stMARecommendation(rHolding, MA(rHolding, 5), MA(rHolding, 20));
+rScore = rScore * (-1);
+_N(rReason = stRecReason);
+
+totalScore = ffScore + bdScore + rScore;
+AddColumn(totalScore, "Total Score", 1.2, colorWhite, stStatusColor(totalScore / 3));
+AddColumn(ffScore, "FF", 1.2, colorWhite, stStatusColor(ffScore));
+AddColumn(bdScore, "YP", 1.2, colorWhite, stStatusColor(bdScore));
+AddColumn(rScore, "Rtl", 1.2, colorWhite, stStatusColor(rScore));
+
