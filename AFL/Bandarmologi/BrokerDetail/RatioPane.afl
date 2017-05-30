@@ -35,37 +35,77 @@ _t0 = GetPerformanceCounter();
 // Init broker detail pane as slave
 stInitBrokerDetail(False);
 
-_SECTION_BEGIN("Net");
-	stSetBackgroundTitle(Name() + ": " + stBrokerName + WriteIf(stBdInvertBroker, " Inverted", "") + " Transactions " + "(B Rp)");
+_SECTION_BEGIN("Broker Ratio");
+	stSetBackgroundTitle(Name() + ": " + stBrokerName + " " + _SECTION_NAME());
 	stSetBackgroundSubtitle(QID_VERSION_LINE);
 	
-	// Randomize the order to get better parallelism
-	if (stBdInvertBroker) {
-		cumBuy = stBdGetBrokerCumSellValue(stBrokerName, stBrokerStartDate);
-		cumSell = stBdGetBrokerCumBuyValue(stBrokerName, stBrokerStartDate);
-	} else {
-		cumSell = stBdGetBrokerCumSellValue(stBrokerName, stBrokerStartDate);
-		cumBuy = stBdGetBrokerCumBuyValue(stBrokerName, stBrokerStartDate);
-	}
+	bdCumSell = stBdGetBrokerCumSellValue(stBrokerName, stBrokerStartDate);
+	bdCumBuy = stBdGetBrokerCumBuyValue(stBrokerName, stBrokerStartDate);
 	
-	intBuy = stGetIntervalFromCum(cumBuy);
-	intSell = stGetIntervalFromCum(cumSell);
+	bdIntBuy = stGetIntervalFromCum(bdCumBuy);
+	bdIntSell = stGetIntervalFromCum(bdCumSell);
 	
-	balance = cumBuy - cumSell;
-	net = stGetIntervalFromCum(Balance);
+	intValue = stGetIntervalValue();
+
+	bdIntValue = Max(bdIntBuy, bdIntSell);
+	bdNetValue = abs(bdIntBuy - bdIntSell);
+
+	bdRatio = IIf(intValue, bdIntValue * 100 / intValue, 0);
+
+	dynamic_color = IIf( bdIntBuy >= bdIntSell, 
+						 ColorBlend( colorBlueGrey, GetChartBkColor(), 0.4), 
+						 ColorBlend( colorLightOrange, GetChartBkColor(), 0.4)); 
+	Plot( Round(bdRatio), 
+		  "Ratio (%)", 
+		  dynamic_color, 
+		  styleHistogram | styleThick,
+		  0,
+		  100,
+		  0,
+		  1,
+		  5);
+
 	
-	// Broker's buy/sell
-	dynamic_color2 = IIf(net >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.5), 
-								  ColorBlend(colorLightOrange, GetChartBkColor(), 0.5));
-	Plot(stAutoPrec(abs( IIf(net >= 0, intBuy, intSell) )), "Broker " + WriteIf(net >= 0, "Buy", "Sell"), dynamic_color2, 
-		 styleHistogram | styleThick, Null, Null, 0, 0, 5);
-		 
-	// Net buy/sell
-	dynamic_color = IIf(net >= 0, colorBlue,  colorOrange);
-	Plot(stAutoPrec(abs(net)), "Net " + WriteIf(net >= 0, "Buy", "Sell") + " (B Rp)", dynamic_color, 
-		 styleHistogram | styleThick, Null, Null, 0, 1, 5);
-	
+	bdNetRatio = IIf(intValue, bdNetValue * 100 / intValue, 0);
+	dynamic_color2 = IIf(bdIntBuy >= bdIntSell, 
+						 colorBlue, 
+						 colorOrange); 
+	Plot( Round(bdNetRatio), 
+		  "Net Ratio (%)", 
+		  dynamic_color2, 
+		  styleHistogram | styleThick,
+		  0,
+		  100,
+		  0,
+		  2,
+		  5);
+	/*
+	Plot( 100, 
+		  "100", 
+		  colorGrey50, 
+		  styleLine | styleNoLabel,
+		  0,
+		  100,
+		  0,
+		  1 );
+	*/
+	Plot( 50, 
+		  "50", 
+		  colorGrey50, 
+		  styleLine | styleNoLabel,
+		  0,
+		  100,
+		  0,
+		  1 );
+	Plot( 0, 
+		  "0", 
+		  colorLightGrey, 
+		  styleLine | styleNoLabel,
+		  0,
+		  100,
+		  0,
+		  0 );
 _SECTION_END();
 
 _t1 = GetPerformanceCounter();
-_TRACE( Name() + " Broker net " + stBrokerName + ": " + (_t1 - _t0) + " ms");
+_TRACE(Name() + " BD ratio: " + Int(_t1 - _t0) + " ms");
