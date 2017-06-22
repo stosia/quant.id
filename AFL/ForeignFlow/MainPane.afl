@@ -153,14 +153,11 @@ if (True OR Status("action") == actionCommentary ) {
 		avg3 = LastValue(Sum(abs(ffIntervalValue),days)) / days;
 		lastRatio = LastValue(Sum(abs(ffIntervalValue),days)) / LastValue(Sum(intervalValue, days));
 		
-		if (avg3 < 2) {
+		if (avg3 < 2 OR lastRatio < 0.2) {
 			// Avg foreign transaction is too low
 			score = ST_STATUS_NOP;
-			_N(reason = "low transaction value (avg(" + days + ")=" + stAutoPrec(avg3) + ")");
-		} else if (lastRatio < 0.2) {
 			// Avg foreign transaction is too low (ratio wise)
-			score = ST_STATUS_NOP;
-			_N(reason = "low transaction ratio (" + stAutoPrec(lastRatio * 100) + "%%)");
+			_N(reason = "low transaction value (avg(" + days + ")=" + stAutoPrec(avg3) + ") or low ratio (" + stAutoPrec(lastRatio * 100) + "%%)");
 		} else {
 			score = stMARecommendation(ffHolding, ffMA1, ffMA2);
 			_N(reason = stRecReason);

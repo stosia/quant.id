@@ -30,7 +30,7 @@
  */
 #include_once <..\Quant.id\AFL\Bandarmologi\BandarmologiCommon.afl>
 
-_N(stRetailogiStartBalanceDate = "2001-01-01");
+_N(stRetailogiStartBalanceDate = "2016-06-01");
 
 //
 // Init retailogi master/slave chart
