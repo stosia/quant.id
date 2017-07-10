@@ -159,7 +159,11 @@ function stBdGetTopSellerName(index)
 function stBdPlot(brokerName, is_buyer, balance, color, style, index)
 {
 	Plot(balance, brokerName, color, style | styleThick | styleNoLabel, Null, Null, 0, 5);
-	PlotText( brokerName, BarCount-4-index, balance[BarCount-4-index], GetChartBkColor(), color, 0);
+	txtPos = 4;
+	if (is_buyer)
+		txtPos += 2;
+	txtPos += (index * 2);
+	PlotText( brokerName, BarCount-txtPos, balance[BarCount-txtPos], GetChartBkColor(), color, 0);
 	x = LastValue( BarIndex() ) + IIf(is_buyer, 1, 3);
     y = LastValue( balance );
     fontsize = 10;
