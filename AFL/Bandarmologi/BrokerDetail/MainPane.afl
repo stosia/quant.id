@@ -163,10 +163,22 @@ if (maEnabled AND Interval() == inDaily) {
 	printf("----------------------------------------------\n");
 	
 	invert = StrFind(ST_RETAIL_BROKERS, stBrokerName) != 0;
-	
+
 	score = ST_STATUS_NOP;
 	score = stMARecommendation(balance, mas, mal);
 	_N(reason = stRecReason);
+	
+	if (stBdParamUseValue) {
+		days = 3;
+		avg3 = LastValue(Sum(netBar,days)) / days;
+		intervalValue = stGetIntervalValue();
+		
+		lastRatio = LastValue(Sum(absNet,days)) / LastValue(Sum(intervalValue, days));
+		
+		_N(reason = reason + "\n\nTransaction value (avg " + days + ") (B Rp)\t: " + stAutoPrec(avg3));
+		_N(reason = reason + "\nLast value (B Rp)                     \t: " + stAutoPrec(LastValue(netBar)));
+		_N(reason = reason + "\nLast ratio                                    \t: " + stAutoPrec(lastRatio * 100) + "%%");
+	}
 	
 	if (invert)
 		score = score * (-1);

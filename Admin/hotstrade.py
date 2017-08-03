@@ -58,7 +58,10 @@ def show_hots_trade(filename):
             assert self.code == trade.code
             self.shares += trade.shares
             self.value += trade.value
-            self.price = self.value / self.shares
+            if self.shares:
+                self.price = self.value / self.shares
+            else:
+                self.price = 0
 
     trades = {}
     with open(filename) as f:

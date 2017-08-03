@@ -150,17 +150,22 @@ if (True OR Status("action") == actionCommentary ) {
 		_N(reason = "");
 		days = 3;
 		
-		avg3 = LastValue(Sum(abs(ffIntervalValue),days)) / days;
+		avg3 = LastValue(Sum(ffIntervalValue,days)) / days;
 		lastRatio = LastValue(Sum(abs(ffIntervalValue),days)) / LastValue(Sum(intervalValue, days));
 		
-		if (avg3 < 2 OR lastRatio < 0.2) {
+		_N(detailReason =                  "Transaction value avg(" + days + ") \t: " + stAutoPrec(avg3));
+		_N(detailReason = detailReason + "\nLast value                \t: " + stAutoPrec(LastValue(ffIntervalValue)));
+		_N(detailReason = detailReason + "\nRatio                          \t: " + stAutoPrec(lastRatio * 100) + "%%");
+		
+		if (abs(avg3) < 2 OR lastRatio < 0.15) {
 			// Avg foreign transaction is too low
 			score = ST_STATUS_NOP;
 			// Avg foreign transaction is too low (ratio wise)
-			_N(reason = "low transaction value (avg(" + days + ")=" + stAutoPrec(avg3) + ") or low ratio (" + stAutoPrec(lastRatio * 100) + "%%)");
+			_N(reason = detailReason);
 		} else {
 			score = stMARecommendation(ffHolding, ffMA1, ffMA2);
-			_N(reason = stRecReason);
+			
+			_N(reason = stRecReason + ".\n" + detailReason);
 		}
 		
 		printf("<b>" + Name() + " RECOMMENDATIONS:</b>\n");
