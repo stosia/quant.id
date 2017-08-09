@@ -43,7 +43,9 @@ function stGetFFIntervalValue()
 	if (Interval() < inDaily) {
 		_N( sql = " SELECT INT_NET_VALUE, dtime " + 
 					" FROM v_adj_intraday_foreign " +
-					" WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+					" WHERE ticker='" + Name() + "' " +
+					stSQLDateTimeFilter() +
+					" ORDER BY dtime ASC");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet");
@@ -51,7 +53,9 @@ function stGetFFIntervalValue()
 		
 		_N( sql = " SELECT DAY_NET_VALUE, dtime " + 
 					" FROM v_adj_intraday_foreign " +
-					" WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+					" WHERE ticker='" + Name() + "' " + 
+					stSQLDateTimeFilter() +
+					" ORDER BY dtime ASC");
 	}
 	
 	ffIntVal = stCachedSQL("stFFIntervalValue", sql) / MILYAR;
@@ -66,7 +70,9 @@ function stGetFFIntervalBuyValue()
 	if (Interval() < inDaily) {
 		_N( sql = " SELECT int_buy_value, dtime " + 
 					 " FROM v_adj_intraday_foreign " +
-					 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+					 " WHERE ticker='" + Name() + "' AND " + 
+					 "       dtime > '" + stLatestDateStr() + " 00:00:00' " +
+					 " ORDER BY dtime ASC");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet");
@@ -74,7 +80,9 @@ function stGetFFIntervalBuyValue()
 		
 		_N( sql = " SELECT day_buy_value, dtime " + 
 					 " FROM v_adj_intraday_foreign " +
-					 " WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+					 " WHERE ticker='" + Name() + "' AND " + 
+ 					 "       (TIME(dtime)='16:14:59' OR dtime = '" + stLatestTimestampStr() + "') " + 
+					 " ORDER BY dtime ASC");
 	}
 
 	ffIntBuyValue = stCachedSQL( "stFFIntervalBuyValue", sql) / MILYAR;
@@ -99,7 +107,9 @@ function stGetFFIntervalSellValue()
 	if (Interval() < inDaily) {
 		_N( sql = " SELECT int_sell_value, dtime " + 
 					" FROM v_adj_intraday_foreign " +
-					" WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+					" WHERE ticker='" + Name() + "' AND " + 
+					"       dtime > '" + stLatestDateStr() + " 00:00:00' " +
+					" ORDER BY dtime ASC");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet");
@@ -107,7 +117,9 @@ function stGetFFIntervalSellValue()
 		
 		_N( sql = " SELECT day_sell_value, dtime " + 
 					" FROM v_adj_intraday_foreign " +
-					" WHERE ticker='" + Name() + "' ORDER BY dtime ASC");
+					" WHERE ticker='" + Name() + "' AND " + 
+					"       (TIME(dtime)='16:14:59' OR dtime = '" + stLatestTimestampStr() + "') " + 
+					" ORDER BY dtime ASC");
 	}
 
 	ffIntBuyValue = stCachedSQL( "stFFIntervalSellValue", sql) / MILYAR;

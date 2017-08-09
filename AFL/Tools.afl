@@ -315,7 +315,7 @@ function stConnectDatabase()
 function stCachedSQL(varName, sql)
 {
 	_N(varName = Name() + "-" + varName);
-	
+
 	if (ST_SQL_CACHING_ENABLED == False) {
 		_TRACE(Name() + " " + varName + " not cached");
 		stConnectDatabase();
@@ -353,6 +353,53 @@ function stCachedSQL(varName, sql)
 	}
 	
 	return arr;
+}
+
+//
+// Get the latest timestamp in intraday_foreign table in database
+//
+function stLatestTimestampStr()
+{
+	stStaticMutexLock("stLatestTimestamp", 30);
+	n = Now(4);
+	latestUpdate = StaticVarGet("stLatestTimestampUpdated");
+	if (IsEmpty(latestUpdate) OR  n - latestUpdate >= 30) {
+		_N(sql = "SELECT DATE_FORMAT(MAX(dtime),'%Y-%m-%d %T') FROM intraday_foreign WHERE ticker='BBRI'");
+		latestTimestampStr = odbcGetValueSQL(sql);
+		StaticVarSet("stLatestTimestampUpdated", n);
+		StaticVarSetText("stLatestTimestampStr", latestTimestampStr);
+		_TRACE("Latest dtime is " + latestTimestampStr);
+	} else {
+		latestTimestampStr = StaticVarGet("stLatestTimestampStr");
+	}
+	stStaticMutexUnlock("stLatestTimestamp");
+	
+	return latestTimestampStr;
+}
+
+//
+// Get the latest date in intraday_foreign table in database
+//
+function stLatestDateStr()
+{
+	latestTimestampStr = stLatestTimestampStr();
+	return StrLeft(latestTimestampStr, 10);
+}
+
+//
+// Get SQL expression to filter datetime to minimize the amount of data
+// returned back from the server
+//
+function stSQLDateTimeFilter()
+{
+	if (Interval() < inDaily) {
+		// Must return ALL rows for current day
+		_N(sql = " AND dtime > '" + stLatestDateStr() + " 00:00:00' ");
+	} else {
+		// Only return one last value for each day
+		_N(sql = " AND (TIME(dtime)='16:14:59' OR dtime = '" + stLatestTimestampStr() + "') ");
+	}
+	return sql;
 }
 
 //

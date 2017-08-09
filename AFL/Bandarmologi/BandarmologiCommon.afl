@@ -53,19 +53,31 @@ function stBdGetBrokerCumBuyShares(broker_name, start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		
+		_N( sql = " SELECT @running_total := @running_total + int_buy_vol AS cum_buy, \n" + 
+				  "        dtime \n" + 
+				  " FROM  v_adj_intraday_broker \n" +
+				  "	JOIN (SELECT @running_total := 0.0) r \n" + 
+				  " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+				  "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+				  stSQLDateTimeFilter() +
+				  " ORDER BY dtime Asc" );
+		
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		
+		_N( sql = " SELECT @running_total := @running_total + day_buy_vol AS cum_buy, \n" + 
+				  "        dtime \n" + 
+				  " FROM  v_adj_intraday_broker \n" +
+				  "	JOIN (SELECT @running_total := 0.0) r \n" + 
+				  " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+				  "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+				  stSQLDateTimeFilter() +
+				  " ORDER BY dtime Asc" );
 	}
 	
-	_N( sql = " SELECT @running_total := @running_total + int_buy_vol AS cum_buy, \n" + 
-			  "        dtime \n" + 
-			  " FROM  v_adj_intraday_broker \n" +
-			  "	JOIN (SELECT @running_total := 0.0) r \n" + 
-		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
-		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
-		      " ORDER BY dtime Asc" );
 	
 	varName = "BdCumBuyShares-" + broker_name;
 	result = stCachedSQL(varName, sql);
@@ -80,20 +92,28 @@ function stBdGetBrokerCumBuyValue(broker_name, start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		_N( sql = " SELECT @running_total := @running_total + int_buy_value AS cum_buy, \n" + 
+				  "        dtime \n" + 
+				  " FROM  v_adj_intraday_broker \n" +
+				  "	JOIN (SELECT @running_total := 0.0) r \n" + 
+				  " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+				  "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+				  stSQLDateTimeFilter() +
+				  " ORDER BY dtime Asc" );
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		_N( sql = " SELECT @running_total := @running_total + day_buy_value AS cum_buy, \n" + 
+				  "        dtime \n" + 
+				  " FROM  v_adj_intraday_broker \n" +
+				  "	JOIN (SELECT @running_total := 0.0) r \n" + 
+				  " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+				  "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+				  stSQLDateTimeFilter() +
+				  " ORDER BY dtime Asc" );
 	}
 	
-	_N( sql = " SELECT @running_total := @running_total + int_buy_value AS cum_buy, \n" + 
-			  "        dtime \n" + 
-			  " FROM  v_adj_intraday_broker \n" +
-			  "	JOIN (SELECT @running_total := 0.0) r \n" + 
-		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
-		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
-		      " ORDER BY dtime Asc" );
-
 	varName = "BdCumBuyValue-" + broker_name;
 	result = stCachedSQL(varName, sql) / MILYAR;
 	
@@ -107,19 +127,27 @@ function stBdGetBrokerCumSellShares(broker_name, start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		_N( sql = " SELECT @running_total := @running_total + int_sell_vol AS cum_sell, \n" + 
+				  "        dtime \n" + 
+				  " FROM  v_adj_intraday_broker \n" +
+				  "	JOIN (SELECT @running_total := 0.0) r \n" + 
+				  " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+				  "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+				  stSQLDateTimeFilter() +
+				  " ORDER BY dtime Asc" );
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		_N( sql = " SELECT @running_total := @running_total + day_sell_vol AS cum_sell, \n" + 
+				  "        dtime \n" + 
+				  " FROM  v_adj_intraday_broker \n" +
+				  "	JOIN (SELECT @running_total := 0.0) r \n" + 
+				  " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+				  "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+				  stSQLDateTimeFilter() +
+				  " ORDER BY dtime Asc" );
 	}
-	
-	_N( sql = " SELECT @running_total := @running_total + int_sell_vol AS cum_sell, \n" + 
-			  "        dtime \n" + 
-			  " FROM  v_adj_intraday_broker \n" +
-			  "	JOIN (SELECT @running_total := 0.0) r \n" + 
-		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
-		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
-		      " ORDER BY dtime Asc" );
 	
 	varName = "BdCumSellShares-" + broker_name;
 	result = stCachedSQL(varName, sql);
@@ -134,19 +162,27 @@ function stBdGetBrokerCumSellValue(broker_name, start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		_N( sql = " SELECT @running_total := @running_total + int_sell_value AS cum_sell, \n" + 
+				  "        dtime \n" + 
+				  " FROM  v_adj_intraday_broker \n" +
+				  "	JOIN (SELECT @running_total := 0.0) r \n" + 
+				  " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+				  "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+				  stSQLDateTimeFilter() + 
+				  " ORDER BY dtime Asc" );
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		_N( sql = " SELECT @running_total := @running_total + day_sell_value AS cum_sell, \n" + 
+				  "        dtime \n" + 
+				  " FROM  v_adj_intraday_broker \n" +
+				  "	JOIN (SELECT @running_total := 0.0) r \n" + 
+				  " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
+				  "       dtime >= '" + start_date_str + " 00:00:00' \n" +
+				  stSQLDateTimeFilter() + 
+				  " ORDER BY dtime Asc" );
 	}
-	
-	_N( sql = " SELECT @running_total := @running_total + int_sell_value AS cum_sell, \n" + 
-			  "        dtime \n" + 
-			  " FROM  v_adj_intraday_broker \n" +
-			  "	JOIN (SELECT @running_total := 0.0) r \n" + 
-		      " WHERE nationality = 'A' AND board = 'R' AND ticker = '" + Name() + "' AND broker = '" + broker_name + "' AND \n" +
-		      "       dtime >= '" + start_date_str + " 00:00:00' \n" +
-		      " ORDER BY dtime Asc" );
 	
 	varName = "BdCumSellValue-" + broker_name;
 	result = stCachedSQL(varName, sql) / MILYAR;
@@ -257,23 +293,34 @@ function stBdGetRetailCumBuyValue(start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		_N(sql = "   SELECT @running_total := @running_total + SUM(int_buy_value) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		_N(sql = "   SELECT @running_total := @running_total + SUM(day_buy_value) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_buy_value) AS cumulative_sum, \n" + 
-	      "          dtime \n" + 
-		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
-		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
-		  "		 AND ticker = '" + Name() + "' \n" + 
-		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
-		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
-		  "	GROUP BY dtime \n" + 
-		  "	ORDER BY t.dtime ASC \n";
-
 	varName = "BdCumBuyValue-Retail";
 	result = stCachedSQL(varName, sql) / MILYAR;
 	return result;
@@ -286,23 +333,34 @@ function stBdGetRetailCumSellValue(start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		_N(sql = "   SELECT @running_total := @running_total + SUM(int_sell_value) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		_N(sql = "   SELECT @running_total := @running_total + SUM(day_sell_value) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_sell_value) AS cumulative_sum, \n" + 
-	      "          dtime \n" + 
-		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
-		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
-		  "		 AND ticker = '" + Name() + "' \n" + 
-		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
-		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
-		  "	GROUP BY dtime \n" + 
-		  "	ORDER BY t.dtime ASC \n";
-
 	varName = "BdCumSellValue-Retail";
 	result = stCachedSQL(varName, sql) / MILYAR;
 	return result;
@@ -327,23 +385,34 @@ function stBdGetRetailCumBuyShares(start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		_N(sql = "   SELECT @running_total := @running_total + SUM(int_buy_vol) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		_N(sql = "   SELECT @running_total := @running_total + SUM(day_buy_vol) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_buy_vol) AS cumulative_sum, \n" + 
-	      "          dtime \n" + 
-		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
-		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
-		  "		 AND ticker = '" + Name() + "' \n" + 
-		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
-		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
-		  "	GROUP BY dtime \n" + 
-		  "	ORDER BY t.dtime ASC \n";
-
 	varName = "BdCumBuyShares-Retail";
 	result = stCachedSQL(varName, sql);
 	return result;
@@ -356,23 +425,35 @@ function stBdGetRetailCumSellShares(start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		_N(sql = "   SELECT @running_total := @running_total + SUM(int_sell_vol) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
+		
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		_N(sql = "   SELECT @running_total := @running_total + SUM(day_sell_vol) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_sell_vol) AS cumulative_sum, \n" + 
-	      "          dtime \n" + 
-		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
-		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
-		  "		 AND ticker = '" + Name() + "' \n" + 
-		  "		 AND broker IN (" + ST_RETAIL_BROKERS + ") \n" + 
-		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
-		  "	GROUP BY dtime \n" + 
-		  "	ORDER BY t.dtime ASC \n";
-
 	varName = "BdCumSellShares-Retail";
 	result = stCachedSQL(varName, sql);
 	return result;
@@ -420,23 +501,34 @@ function stBdGetNonRetailCumValue(start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		_N(sql = "   SELECT @running_total := @running_total + SUM(int_net_value) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		_N(sql = "   SELECT @running_total := @running_total + SUM(day_net_value) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_net_value) AS cumulative_sum, \n" + 
-	      "          dtime \n" + 
-		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
-		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
-		  "		 AND ticker = '" + Name() + "' \n" + 
-		  "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
-		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
-		  "	GROUP BY dtime \n" + 
-		  "	ORDER BY t.dtime ASC \n";
-
 	varName = "BdCumValue-NonRetail";
 	result = stCachedSQL(varName, sql) / MILYAR;
 	result = stShiftPositive(result);
@@ -450,23 +542,34 @@ function stBdGetNonRetailCumShares(start_date_str)
 {
 	if (Interval() < inDaily) {
 		_N(start_date_str = stBdGetStartDate(0));
+		_N(sql = "   SELECT @running_total := @running_total + SUM(int_net_vol) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	} else {
 		if (Interval() > inDaily) {
 			stAlert("Error: Interval greater than daily is not supported yet!");
 		}
+		_N(sql = "   SELECT @running_total := @running_total + SUM(day_net_vol) AS cumulative_sum, \n" + 
+				 "          dtime \n" + 
+				 "     FROM v_adj_intraday_broker2 t \n" + 
+				 "		JOIN (SELECT @running_total := 0.0) r \n" + 
+				 "	   WHERE nationality = 'A' AND board = 'R' \n" + 
+				 "		 AND ticker = '" + Name() + "' \n" + 
+				 "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
+				 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+				 stSQLDateTimeFilter() +
+				 "	GROUP BY dtime \n" + 
+				 "	ORDER BY t.dtime ASC \n");
 	}
 	
-	sql = "   SELECT @running_total := @running_total + SUM(int_net_vol) AS cumulative_sum, \n" + 
-	      "          dtime \n" + 
-		  "     FROM v_adj_intraday_broker2 t \n" + 
-		  "		JOIN (SELECT @running_total := 0.0) r \n" + 
-		  "	   WHERE nationality = 'A' AND board = 'R' \n" + 
-		  "		 AND ticker = '" + Name() + "' \n" + 
-		  "		 AND broker NOT IN (" + ST_RETAIL_BROKERS + ") \n" + 
-		  "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
-		  "	GROUP BY dtime \n" + 
-		  "	ORDER BY t.dtime ASC \n";
-
 	varName = "BdCumShares-NonRetail";
 	result = stCachedSQL(varName, sql);
 	result = stShiftPositive(result);
