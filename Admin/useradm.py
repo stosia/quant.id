@@ -342,12 +342,21 @@ def normalize_user_id(user_id):
     return user_id.lower().strip()
 
 
-# print("        add email full name     Add an account for new/existing user")
 def add(dbc, args):
-    if len(args) < 1:
-        sys.stderr.write("Error: email is required. Full name is also required when addning new user\n")
+    """Usage:
+    add email full name     Add an account for new/existing user
+    """
+    email = None
+    names = []
+    for i, arg in enumerate(args):
+        if email is None and '@' in arg:
+            email = arg.lower()
+        else:
+            names.append(arg)
+
+    if not email:
+        sys.stderr.write("Error: email is required\n")
         sys.exit(1)
-    email = normalize_email(args[0])
 
     usr = User.db_lookup_by_email(dbc, email)
     if usr:
@@ -360,10 +369,10 @@ def add(dbc, args):
             print("%s's active account %s will be dropped first" % (email, usr.cur_acc))
             usr.db_del_account()
     else:
-        if len(args) < 2:
-            sys.stderr.write("Error: email and full name is required\n")
+        if not names:
+            sys.stderr.write("Error: full name is required\n")
             sys.exit(1)
-        full_name = " ".join(args[1:])
+        full_name = " ".join(names)
         if len(full_name) < 5:
             sys.stderr.write("Error: Full name is too short\n")
             sys.exit(1)
@@ -391,8 +400,10 @@ def add(dbc, args):
     usr.db_add_account()
 
 
-# print("        drop email/user_id      Drop the account")
 def drop(dbc, args):
+    """Usage:
+    drop email/user_id      Drop the account
+    """
     if len(args) < 1:
         sys.stderr.write("Error: need email or user id\n")
         sys.exit(1)
@@ -413,8 +424,10 @@ def drop(dbc, args):
     usr.db_del_account()
 
 
-# print("        warn [now]              Warn expired accounts next month/now")
 def warn(dbc, args):
+    """Usage:
+    warn [now]              Warn expired accounts next month/now
+    """
     if len(args):
         if args[0] == "now":
             when = datetime.date.today()
@@ -434,8 +447,10 @@ def warn(dbc, args):
             print("  %s <%s>" % (u.full_name, u.email))
 
 
-# print("        clean                   Clean up expired accounts now")
 def clean(dbc, args):
+    """Usage:
+    clean                   Clean up expired accounts now
+    """
     if args:
         sys.stderr.write("Error: 'clean' does not need any arguments\n")
         sys.exit(1)
@@ -469,7 +484,7 @@ if __name__ == "__main__":
         elif not cmd:
             cmd = sys.argv[i]
         else:
-            cmd_args.append(sys.argv[i])
+            cmd_args.append(sys.argv[i].strip())
         i += 1
 
     if cmd in ["-h", "--help", "/?", "?"]:

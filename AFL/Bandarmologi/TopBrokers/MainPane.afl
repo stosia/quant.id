@@ -58,12 +58,16 @@ _SECTION_BEGIN("Top Brokers");
 	     Null, Null, 0, -5, 3);
 
 	// Plot top buyers and sellers
-	for (i=0; i<stBdParamTopCount; ++i) {
-		stBdPlotBuyer(i);
+	if (stBdParamTopBrokerType == "Both" || stBdParamTopBrokerType == "Buyer") {
+		for (i=0; i<stBdParamTopCount; ++i) {
+			stBdPlotBuyer(i);
+		}
 	}
 	
-	for (i=stBdParamTopCount-1; i>=0; --i) {
-		stBdPlotSeller(i);
+	if (stBdParamTopBrokerType == "Both" || stBdParamTopBrokerType == "Seller") {
+		for (i=stBdParamTopCount-1; i>=0; --i) {
+			stBdPlotSeller(i);
+		}
 	}
 
 	// Add custom broker, separated by comma.

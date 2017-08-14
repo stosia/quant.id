@@ -61,13 +61,14 @@ stBdSellerColors[5] = colorPink;
 //
 function stInitTopBrokers(is_master)
 {
-	global stBdTopBrokers, stBdBrokerCnt, stBdStartDate, stBdParamDays, 
+	global stBdTopBrokers, stBdBrokerCnt, stBdStartDate, stBdParamDays, stBdParamTopBrokerType,
 		   stBdParamTopCount, stBdParamUseValue, stBdParamAbs, stBdStartBalanceDate;
 	
 	stConnectDatabase();
 	
 	if (is_master) {
 		stBdParamDays = Param("Days", stBdParamDays, 0, 60);
+		stBdParamTopBrokerType = ParamList("Buyer/Seller", "Both|Buyer|Seller", 0);
 		stBdParamTopCount = Param("Brokers", stBdParamTopCount, 0, 5);
 		stBdParamUseValue = ParamToggle("Use Value or Lot", "Lot|Value", 1);
 		stBdParamAbs = ParamToggle("Absolute Value", "No|Yes", stBdParamAbs);
@@ -100,6 +101,7 @@ function stInitTopBrokers(is_master)
 		
 		
 		StaticVarSet("stBdParamDays", stBdParamDays);
+		StaticVarSetText("stBdParamTopBrokerType", stBdParamTopBrokerType);
 		StaticVarSet("stBdParamTopCount", stBdParamTopCount);
 		StaticVarSet("stBdParamUseValue", stBdParamUseValue);
 		StaticVarSet("stBdParamAbs", stBdParamAbs);
@@ -115,6 +117,7 @@ function stInitTopBrokers(is_master)
 		stSlaveChartWaitReady("stInitTopBrokers", 20);
 
 		stBdStartDate = StaticVarGetText("stBdStartDate");
+		stBdParamTopBrokerType = StaticVarGetText("stBdParamTopBrokerType");
 		stBdTopBrokers = StaticVarGetText("stBdTopBrokers");
 		stBdBrokerCnt = StaticVarGet("stBdBrokerCnt");
 		
