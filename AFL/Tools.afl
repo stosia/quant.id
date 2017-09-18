@@ -363,7 +363,7 @@ function stLatestTimestampStr()
 	stStaticMutexLock("stLatestTimestamp", 30);
 	n = Now(4);
 	latestUpdate = StaticVarGet("stLatestTimestampUpdated");
-	if (IsEmpty(latestUpdate) OR  n - latestUpdate >= 30) {
+	if (True OR IsEmpty(latestUpdate) OR  n - latestUpdate >= 30) {
 		_N(sql = "SELECT DATE_FORMAT(MAX(dtime),'%Y-%m-%d %T') FROM intraday_foreign WHERE ticker='BBRI'");
 		latestTimestampStr = odbcGetValueSQL(sql);
 		StaticVarSet("stLatestTimestampUpdated", n);
