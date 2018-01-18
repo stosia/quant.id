@@ -161,7 +161,7 @@ if (True OR Status("action") == actionCommentary ) {
 			// Avg foreign transaction is too low
 			score = ST_STATUS_NOP;
 			// Avg foreign transaction is too low (ratio wise)
-			_N(reason = detailReason);
+			_N(reason = "Average transaction value or ratio is too low.\n\n" + detailReason);
 		} else {
 			score = stMARecommendation(ffHolding, ffMA1, ffMA2);
 			
