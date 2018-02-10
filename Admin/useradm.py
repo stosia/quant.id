@@ -444,7 +444,7 @@ def warn(dbc, args):
     else:
         print("%d user(s) will expire on %s" % (len(expired_users), str(when)))
         for u in expired_users:
-            print("  %s <%s>" % (u.full_name, u.email))
+            print("  %s <%s>\t(%s)" % (u.full_name, u.email, str(u.cur_acc_expiry)))
 
 
 def clean(dbc, args):
@@ -463,7 +463,7 @@ def clean(dbc, args):
     else:
         print("Cleaning %d expired user(s)" % (len(expired_users)))
         for u in expired_users:
-            print("  %s <%s>" % (u.full_name, u.email))
+            print("  %s <%s>\t(%s)" % (u.full_name, u.email, str(u.cur_acc_expiry)))
             u.db_del_account()
 
 
