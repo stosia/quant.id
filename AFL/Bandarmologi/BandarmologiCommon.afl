@@ -32,6 +32,7 @@
 #include_once <..\Quant.id\AFL\Tools.afl>
 
 _N(ST_RETAIL_BROKERS = "'YP', 'PD', 'NI', 'KK'");
+_N(ST_MULTI_BROKERS = "AI,AK,BK,CG,CS,DB,DP,DR,FG,GW,KZ,ML,MS,RX,YU,ZP");
 
 //
 // Calculate start date, that is "days" prior to last date
@@ -574,4 +575,243 @@ function stBdGetNonRetailCumShares(start_date_str)
 	result = stCachedSQL(varName, sql);
 	result = stShiftPositive(result);
 	return result;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Multiple brokers system
+//
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Convert list of tokens into SQL list, trimming whitespaces when necessary
+// Eg: "one, two,three" --> 'one', 'two', 'three'
+function strListToSqlList(lst)
+{
+    result = "";
+    
+    cnt = StrCount(lst, ",");
+    for (i=0; i < cnt; ++i) {
+        token = StrTrim(StrExtract(lst, i), "");
+        result = result + "'" + token + "'";
+        
+        if (i != cnt-1)
+            result = result + ", ";
+    }
+    return result;
+}
+
+//
+// Get cummulative multiple brokers buy value in Milyar Rp
+//
+function stBdGetMultiBrokersCumBuyValue(broker_list, start_date_str)
+{
+    sql_brokers = strListToSqlList(broker_list);
+    
+    if (Interval() < inDaily) {
+        _N(start_date_str = stBdGetStartDate(0));
+        _N(sql = "   SELECT @running_total := @running_total + SUM(int_buy_value) AS cumulative_sum, \n" + 
+                 "          dtime \n" + 
+                 "     FROM v_adj_intraday_broker2 t \n" + 
+                 "      JOIN (SELECT @running_total := 0.0) r \n" + 
+                 "     WHERE nationality = 'A' AND board = 'R' \n" + 
+                 "       AND ticker = '" + Name() + "' \n" + 
+                 "       AND broker IN (" + sql_brokers + ") \n" + 
+                 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+                 stSQLDateTimeFilter() +
+                 "  GROUP BY dtime \n" + 
+                 "  ORDER BY t.dtime ASC \n");
+    } else {
+        if (Interval() > inDaily) {
+            stAlert("Error: Interval greater than daily is not supported yet!");
+        }
+        _N(sql = "   SELECT @running_total := @running_total + SUM(day_buy_value) AS cumulative_sum, \n" + 
+                 "          dtime \n" + 
+                 "     FROM v_adj_intraday_broker2 t \n" + 
+                 "      JOIN (SELECT @running_total := 0.0) r \n" + 
+                 "     WHERE nationality = 'A' AND board = 'R' \n" + 
+                 "       AND ticker = '" + Name() + "' \n" + 
+                 "       AND broker IN (" + sql_brokers + ") \n" + 
+                 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+                 stSQLDateTimeFilter() +
+                 "  GROUP BY dtime \n" + 
+                 "  ORDER BY t.dtime ASC \n");
+    }
+    
+    varName = "BdCumBuyValue-MultiBrokers";
+    result = stCachedSQL(varName, sql) / MILYAR;
+    return result;
+}
+
+//
+// Get cummulative multiple brokers sell value in Milyar Rp
+//
+function stBdGetMultiBrokersCumSellValue(broker_list, start_date_str)
+{
+    sql_brokers = strListToSqlList(broker_list);
+    
+    if (Interval() < inDaily) {
+        _N(start_date_str = stBdGetStartDate(0));
+        _N(sql = "   SELECT @running_total := @running_total + SUM(int_sell_value) AS cumulative_sum, \n" + 
+                 "          dtime \n" + 
+                 "     FROM v_adj_intraday_broker2 t \n" + 
+                 "      JOIN (SELECT @running_total := 0.0) r \n" + 
+                 "     WHERE nationality = 'A' AND board = 'R' \n" + 
+                 "       AND ticker = '" + Name() + "' \n" + 
+                 "       AND broker IN (" + sql_brokers + ") \n" + 
+                 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+                 stSQLDateTimeFilter() +
+                 "  GROUP BY dtime \n" + 
+                 "  ORDER BY t.dtime ASC \n");
+    } else {
+        if (Interval() > inDaily) {
+            stAlert("Error: Interval greater than daily is not supported yet!");
+        }
+        _N(sql = "   SELECT @running_total := @running_total + SUM(day_sell_value) AS cumulative_sum, \n" + 
+                 "          dtime \n" + 
+                 "     FROM v_adj_intraday_broker2 t \n" + 
+                 "      JOIN (SELECT @running_total := 0.0) r \n" + 
+                 "     WHERE nationality = 'A' AND board = 'R' \n" + 
+                 "       AND ticker = '" + Name() + "' \n" + 
+                 "       AND broker IN (" + sql_brokers + ") \n" + 
+                 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+                 stSQLDateTimeFilter() +
+                 "  GROUP BY dtime \n" + 
+                 "  ORDER BY t.dtime ASC \n");
+    }
+    
+    varName = "BdCumSellValue-MultiBrokers";
+    result = stCachedSQL(varName, sql) / MILYAR;
+    return result;
+}
+
+//
+// Get cummulative multiple brokers ownership value in Milyar Rp
+//
+function stBdGetMultiBrokersCumValue(broker_list, start_date_str)
+{
+    cumBuyValue = stBdGetMultiBrokersCumBuyValue(broker_list, start_date_str);
+    cumSellValue = stBdGetMultiBrokersCumSellValue(broker_list, start_date_str);
+    result = cumBuyValue - cumSellValue;
+    result = stShiftPositive(result);
+    return result;
+}
+
+//
+// Get cummulative multiple brokers buy volume in shares
+//
+function stBdGetMultiBrokersCumBuyShares(broker_list, start_date_str)
+{
+    sql_brokers = strListToSqlList(broker_list);
+    
+    if (Interval() < inDaily) {
+        _N(start_date_str = stBdGetStartDate(0));
+        _N(sql = "   SELECT @running_total := @running_total + SUM(int_buy_vol) AS cumulative_sum, \n" + 
+                 "          dtime \n" + 
+                 "     FROM v_adj_intraday_broker2 t \n" + 
+                 "      JOIN (SELECT @running_total := 0.0) r \n" + 
+                 "     WHERE nationality = 'A' AND board = 'R' \n" + 
+                 "       AND ticker = '" + Name() + "' \n" + 
+                 "       AND broker IN (" + sql_brokers + ") \n" + 
+                 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+                 stSQLDateTimeFilter() +
+                 "  GROUP BY dtime \n" + 
+                 "  ORDER BY t.dtime ASC \n");
+    } else {
+        if (Interval() > inDaily) {
+            stAlert("Error: Interval greater than daily is not supported yet!");
+        }
+        _N(sql = "   SELECT @running_total := @running_total + SUM(day_buy_vol) AS cumulative_sum, \n" + 
+                 "          dtime \n" + 
+                 "     FROM v_adj_intraday_broker2 t \n" + 
+                 "      JOIN (SELECT @running_total := 0.0) r \n" + 
+                 "     WHERE nationality = 'A' AND board = 'R' \n" + 
+                 "       AND ticker = '" + Name() + "' \n" + 
+                 "       AND broker IN (" + sql_brokers + ") \n" + 
+                 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+                 stSQLDateTimeFilter() +
+                 "  GROUP BY dtime \n" + 
+                 "  ORDER BY t.dtime ASC \n");
+    }
+    
+    varName = "BdCumBuyShares-MultiBrokers";
+    result = stCachedSQL(varName, sql);
+    return result;
+}
+
+//
+// Get cummulative multiple brokers sell volume in shares
+//
+function stBdGetMultiBrokersCumSellShares(broker_list, start_date_str)
+{
+    sql_brokers = strListToSqlList(broker_list);
+    
+    if (Interval() < inDaily) {
+        _N(start_date_str = stBdGetStartDate(0));
+        _N(sql = "   SELECT @running_total := @running_total + SUM(int_sell_vol) AS cumulative_sum, \n" + 
+                 "          dtime \n" + 
+                 "     FROM v_adj_intraday_broker2 t \n" + 
+                 "      JOIN (SELECT @running_total := 0.0) r \n" + 
+                 "     WHERE nationality = 'A' AND board = 'R' \n" + 
+                 "       AND ticker = '" + Name() + "' \n" + 
+                 "       AND broker IN (" + sql_brokers + ") \n" + 
+                 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+                 stSQLDateTimeFilter() +
+                 "  GROUP BY dtime \n" + 
+                 "  ORDER BY t.dtime ASC \n");
+        
+    } else {
+        if (Interval() > inDaily) {
+            stAlert("Error: Interval greater than daily is not supported yet!");
+        }
+        _N(sql = "   SELECT @running_total := @running_total + SUM(day_sell_vol) AS cumulative_sum, \n" + 
+                 "          dtime \n" + 
+                 "     FROM v_adj_intraday_broker2 t \n" + 
+                 "      JOIN (SELECT @running_total := 0.0) r \n" + 
+                 "     WHERE nationality = 'A' AND board = 'R' \n" + 
+                 "       AND ticker = '" + Name() + "' \n" + 
+                 "       AND broker IN (" + sql_brokers + ") \n" + 
+                 "      AND dtime >= '" + start_date_str + " 00:00:00' \n" +
+                 stSQLDateTimeFilter() +
+                 "  GROUP BY dtime \n" + 
+                 "  ORDER BY t.dtime ASC \n");
+    }
+    
+    varName = "BdCumSellShares-MultiBrokers";
+    result = stCachedSQL(varName, sql);
+    return result;
+}
+
+//
+// Get cummulative multiple brokers ownership in shares
+//
+function stBdGetMultiBrokersCumShares(broker_list, start_date_str)
+{
+    cumBuyShares = stBdGetMultiBrokersCumBuyShares(broker_list, start_date_str);
+    cumSellShares = stBdGetMultiBrokersCumSellShares(broker_list, start_date_str);
+    result = cumBuyShares - cumSellShares;
+    result = stShiftPositive(result);
+    return result;
+}
+
+//
+// Get average price of multiple brokers.
+// This also sets stBdMultiBrokersProfit global variable.
+//
+function stBdGetMultiBrokersAvgPrice(broker_list, start_date_str)
+{
+    global stBdMultiBrokersProfit;
+    
+    cumBuyValue = stBdGetMultiBrokersCumBuyValue(broker_list, start_date_str) * MILYAR;
+    buyValue = stGetIntervalFromCum(cumBuyValue);
+    cumBuyShares = stBdGetMultiBrokersCumBuyShares(broker_list, start_date_str);
+    buyShares = stGetIntervalFromCum(cumBuyShares);
+    cumSellValue = stBdGetMultiBrokersCumSellValue(broker_list, start_date_str) * MILYAR;
+    sellValue = stGetIntervalFromCum(cumSellValue);
+    cumSellShares = stBdGetMultiBrokersCumSellShares(broker_list, start_date_str);
+    sellShares = stGetIntervalFromCum(cumSellShares);
+    
+    avgPrice = stGetAvgPriceDaily(buyValue, buyShares, sellValue, sellShares);
+    stBdMultiBrokersProfit = stProfit;
+    
+    return avgPrice;
 }

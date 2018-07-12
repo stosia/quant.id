@@ -1,0 +1,131 @@
+/* 
+ * Copyright (C)2017 PT. Stosia Teknologi Investasi
+ *
+ * This file is licensed under  GNU GPL (General Public License) version 3.
+ *
+ * File ini dilisensikan kepada Anda, bukan  Anda miliki.  Pemilik file ini
+ * adalah pemegang  hak cipta ("copyright holder") di atas. Gunakanlah file
+ * ini sesuai dengan lisensi yang telah ditetapkan untuk file ini.
+ *
+ * File ini  berlisensi  GNU GPL (General Public License)  versi 3. Artinya
+ * kalau Anda  memodifikasi file ini, atau membuat karya lain yang berbasis
+ * file ini  ("derivative work"),  maka Anda  wajib  mendistribusikan  kode
+ * modifikasi atau karya tersebut kepada publik. Hal ini untuk menjaga agar
+ * pengetahuan yang ada di sini menjadi lebih berkembang  di masa mendatang 
+ * untuk kemajuan kita bersama.
+ *
+ * Silakan memakai kode ini untuk kepentingan apapun termasuk untuk mencari
+ * profit di pasar saham baik secara perorangan atau organisasi, asal tidak
+ * jahat. Sebagai tambahan permintaan, kami menghimbau untuk TIDAK  menjual
+ * kode/file  ini secara  apa adanya  atau dalam bundel  produk yang dijual
+ * secara komersial, karena hal itu tidak etis.
+ *
+ * Untuk penjelasan lebih lanjut silakan bertanya kepada kami.  Untuk detil
+ * lisensi GPLv3  silakan lihat file GPLv3-LICENSE.md  yang didistribusikan
+ * bersama file ini.
+ *
+ * Author: Benny Prijono <benny@stosia.com>
+ * Contributors:
+ *  - 
+ */
+_t0 = GetPerformanceCounter();
+
+#include_once <..\Quant.id\AFL\Bandarmologi\MultiBrokers\MultiBrokersCommon.afl>
+
+_SECTION_BEGIN("Price");
+	_N(Title = StrFormat(QID_VERSION_LINE + " -- {{NAME}} - {{INTERVAL}} {{DATE}} {{VALUES}}"));
+	
+	SetChartOptions( 0, chartShowArrows|chartShowDates);
+	SetBarFillColor(IIf(C >= Open, GetChartBkColor(), ColorBlend(GetChartBkColor(), colorBrown, 0.3)));
+	minPrice = LowestVisibleValue(L);
+	maxPrice = HighestVisibleValue(H);
+	Plot( C, "Close",  
+		  IIf(C >= Open, ColorBlend(GetChartBkColor(), colorGreen, 1.0), 
+		                 ColorBlend(GetChartBkColor(), colorBrown, 1.0)), 
+		  GetPriceStyle() | styleOwnScale, minPrice, maxPrice, 0, 1); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Multi Brokers");
+	// Init master
+	stInitMultiBrokers(True);
+
+	// Background text
+	stSetBackgroundTitle(Name());
+	stSetBackgroundSubtitle("Multi Brokers System");
+	stSetBackgroundSubsubtitle(QID_VERSION_LINE);
+	
+	if (stMultiBrokersParamUseValue) {
+		holding = stBdGetMultiBrokersCumValue(stMultiBrokersBrokers, stMultiBrokersStartBalanceDate);
+		_N(satuan = "(B Rp)");
+	} else {
+		holding = stBdGetMultiBrokersCumShares(stMultiBrokersBrokers, stMultiBrokersStartBalanceDate);
+		_N(satuan = "(Lot)");
+	}
+
+	_N( indTitle = "Multi Brokers");
+	_N( indName = "MBS");
+	
+	Plot(stAutoPrec(holding), indTitle + " " + satuan, 
+		 ColorBlend(colorRed, GetChartBkColor(), 0.5), 
+		 styleLine | styleThick, Null, Null, 
+		 0, 5);
+	x = LastValue( BarIndex() ) + 2;
+	y = LastValue( holding );
+	PlotTextSetFont( indName, "Arial", 11, x, y, GetChartBkColor(), colorLightBlue, -12/2 );
+	
+	maEnabled = ParamToggle("Enable MA", "No|Yes", 1);
+	maPeriod1 = Param("MA Period 1", 5, 1, 100);
+	maPeriod2 = Param("MA Period 2", 20, 1, 100);
+	
+	ma1 = MA(holding, maPeriod1);
+	ma2 = MA(holding, maPeriod2);
+	
+	if (maEnabled) {
+		Plot( ma1, "MA" + maPeriod1, colorOrange, styleLine | styleNoLabel, Null, Null, Null, 2);
+		Plot( ma2, "MA" + maPeriod2, colorOrange, styleDashed | styleNoLabel, Null, Null, Null, 2);
+		
+		Buy = Cross(ma1, ma2);
+		Sell = Cross(ma2, ma1);
+		PlotShapes( Buy * shapeUpArrow, colorGreen, 0, ma2); 
+		PlotShapes( Sell * shapeDownArrow, colorRed, 0, ma1);
+	}
+
+	//
+	// Average Price
+	//
+	avgPrice = stBdGetMultiBrokersAvgPrice(stMultiBrokersBrokers, stMultiBrokersStartBalanceDate);
+	Plot(avgPrice, "Avg Price", colorGreen, styleDashed | styleOwnScale | styleThick, minPrice, maxPrice);
+
+	if (maEnabled AND Interval() == inDaily) {
+		printf("<b>" + Name() + " RECOMMENDATIONS:</b>\n");
+		printf("----------------------------------------------\n");
+	
+		score = stMARecommendation(holding, ma1, ma2);
+		_N(reason = stRecReason);
+		
+		printf("<b>MultiBrokers:  " + EncodeColor(stStatusColor(score)) + stRecText(score) + "</b>" + EncodeColor(colorBlack) + "\n");
+		printf("" + reason + "\n");
+		printf("----------------------------------------------\n");
+		
+		stDisplayRec(score, 0);
+	}
+	
+	//
+	// Bar
+	//
+	netBar = stGetIntervalFromCum(holding);
+	absNet = abs(netBar);
+	maxNet = HighestVisibleValue(absNet);
+	Plot(stAutoPrec(absNet), "Net ", 
+		 IIf(netBar >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.3), 
+						  ColorBlend(colorLightOrange, GetChartBkColor(), 0.3)), 
+		 styleHistogram | styleThick | styleOwnScale | styleNoTitle, 0, maxNet * 2, 0, 0, 5);
+	Plot(netBar, "Net " + WriteIf(netBar >= 0, "Buy ", "Sell ") + satuan, 
+		 IIf(netBar >= 0, ColorBlend(colorLightBlue, GetChartBkColor(), 0.3), 
+						  ColorBlend(colorLightOrange, GetChartBkColor(), 0.3)), 
+		 styleNoDraw | styleNoLabel | styleOwnScale);
+_SECTION_END();
+
+_t1 = GetPerformanceCounter();
+_TRACE(Name() + " MultiBrokers main: " + Int(_t1 - _t0) + " ms");
